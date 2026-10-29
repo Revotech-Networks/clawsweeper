@@ -50,7 +50,7 @@ import {
   parseTrustedAutomation,
   repairableCheckBlockers,
   repairLoopPauseLabels,
-  repairLoopStopPauseReason,
+  repairLoopControlBlockReason,
   reviewedHeadShaBlockReason,
   renderAutomergeJob,
   renderIssueImplementationJob,
@@ -651,7 +651,7 @@ test("later stop command pauses older automerge automation", () => {
   ];
 
   assert.equal(
-    repairLoopStopPauseReason({
+    repairLoopControlBlockReason({
       command: {
         repo: "openclaw/openclaw",
         issue_number: 76686,
@@ -664,7 +664,7 @@ test("later stop command pauses older automerge automation", () => {
     "ClawSweeper automation was paused by a later /clawsweeper stop command",
   );
   assert.equal(
-    repairLoopStopPauseReason({
+    repairLoopControlBlockReason({
       command: {
         repo: "openclaw/openclaw",
         issue_number: 76686,
@@ -1504,6 +1504,98 @@ test("auto repair cap allows ten PR repair rounds and blocks the eleventh", () =
       maxRepairsPerHead: 1,
     }),
     "ClawSweeper auto repair already dispatched 10 total time(s) for this PR",
+  );
+});
+
+test("repair loop mode controls keep the latest opposite-mode request authoritative", () => {
+  const older = {
+    repo: "example/project",
+    issue_number: 42,
+    comment_id: "101",
+    intent: "automerge",
+    comment_updated_at: "2026-10-29T10:00:00Z",
+  };
+  const newer = {
+    ...older,
+    comment_id: "102",
+    intent: "autofix",
+    comment_updated_at: "2026-10-29T11:00:00Z",
+  };
+  assert.match(
+    repairLoopControlBlockReason({ command: older, entries: [newer, older] }) ?? "",
+    /superseded by a later \/clawsweeper autofix command/,
+  );
+  assert.equal(repairLoopControlBlockReason({ command: newer, entries: [newer, older] }), null);
+  assert.match(
+    repairLoopControlBlockReason({
+      command: { ...older, intent: "autofix" },
+      entries: [{ ...newer, intent: "automerge" }],
+    }) ?? "",
+    /superseded by a later \/clawsweeper automerge command/,
+  );
+});
+
+test("repair loop mode controls use comment id to break equal timestamp ties", () => {
+  const command = {
+    repo: "example/project",
+    issue_number: 42,
+    comment_id: "101",
+    intent: "automerge",
+    comment_updated_at: "2026-10-29T10:00:00Z",
+  };
+  assert.match(
+    repairLoopControlBlockReason({
+      command,
+      entries: [{ ...command, comment_id: "102", intent: "autofix" }],
+    }) ?? "",
+    /superseded/,
+  );
+  assert.equal(
+    repairLoopControlBlockReason({
+      command,
+      entries: [{ ...command, comment_id: "100", intent: "autofix" }],
+    }),
+    null,
+  );
+});
+
+test("repair loop mode controls ignore unrelated, older and automated intent", () => {
+  const command = {
+    repo: "example/project",
+    issue_number: 42,
+    comment_id: "101",
+    intent: "automerge",
+    comment_updated_at: "2026-10-29T10:00:00Z",
+  };
+  const newer = {
+    ...command,
+    comment_id: "102",
+    intent: "autofix",
+    comment_updated_at: "2026-10-29T11:00:00Z",
+  };
+  assert.equal(
+    repairLoopControlBlockReason({
+      command,
+      entries: [
+        { ...newer, repo: "other/project" },
+        { ...newer, issue_number: 43 },
+        { ...newer, trusted_bot: true },
+        { ...newer, intent: "automerge" },
+        { ...newer, comment_updated_at: "2026-10-29T09:00:00Z" },
+      ],
+    }),
+    null,
+  );
+  assert.equal(
+    repairLoopControlBlockReason({ command: { ...command, trusted_bot: true }, entries: [newer] }),
+    null,
+  );
+  assert.equal(
+    repairLoopControlBlockReason({
+      command: { ...command, comment_updated_at: "" },
+      entries: [newer],
+    }),
+    null,
   );
 });
 
