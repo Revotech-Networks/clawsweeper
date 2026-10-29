@@ -22,16 +22,11 @@ const FIX_REPAIR_STRATEGIES = new Set([
   "needs_human",
 ]);
 const MUTATING_ACTIONS = new Set([
-  "close",
-  "close_duplicate",
-  "close_superseded",
-  "close_fixed_by_candidate",
+  ...CLOSE_ACTIONS,
+  ...MERGE_ACTIONS,
   "label",
   "comment",
-  "merge_candidate",
-  "merge_canonical",
   "open_fix_pr",
-  "post_merge_close",
 ]);
 const FIX_ACTIONS = new Set(["fix_needed", "build_fix_artifact", "open_fix_pr"]);
 

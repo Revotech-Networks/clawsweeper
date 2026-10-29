@@ -7,6 +7,198 @@ import test from "node:test";
 
 const repoRoot = process.cwd();
 
+for (const scenario of [
+  { name: "ordinary", body: "Minor wording cleanup.", blocked: false },
+  { name: "body CVE", body: "See CVE-2099-12345.", blocked: true },
+  { name: "body GHSA", body: "See GHSA-aaaa-bbbb-cccc.", blocked: true },
+  {
+    name: "body marker",
+    body: "<!-- clawsweeper-security:security-sensitive -->",
+    blocked: true,
+  },
+  {
+    name: "contributor review",
+    reviews: [comment("alice", "<!-- clawsweeper-route:central-security -->")],
+    blocked: true,
+  },
+  {
+    name: "inline review comment",
+    reviewComments: [comment("alice", "<!-- clawsweeper-verdict:security -->")],
+    blocked: true,
+  },
+  { name: "security label", labels: ["security-sensitive"], blocked: true },
+  {
+    name: "issue comment",
+    comments: [comment("alice", "<!-- clawsweeper-security:security-sensitive -->")],
+    blocked: true,
+  },
+]) {
+  test(`repair apply low-signal security guard: ${scenario.name}`, () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "clawsweeper-apply-result-"));
+    try {
+      const paths = writeApplyFixture(tmp, {
+        action: "close_low_signal",
+        classification: "low_signal",
+      });
+      writeFakeGh(paths.binDir, {
+        issues: {
+          101: {
+            ...issue({
+              number: 101,
+              title: "Wording cleanup",
+              pullRequest: true,
+              labels: scenario.labels,
+            }),
+            body: scenario.body ?? "Minor wording cleanup.",
+          },
+        },
+        pulls: { 101: pull({ number: 101, title: "Wording cleanup" }) },
+        comments: { 101: scenario.comments ?? [] },
+        reviews: { 101: scenario.reviews ?? [] },
+        reviewComments: { 101: scenario.reviewComments ?? [] },
+        logPath: paths.ghLogPath,
+      });
+      writeFakeCodex(paths.binDir);
+
+      runApplyResult(paths, { proofDecision: "covered", failIfProofRuns: true });
+
+      const report = JSON.parse(fs.readFileSync(paths.reportPath, "utf8"));
+      assert.equal(report.actions[0].status, scenario.blocked ? "blocked" : "executed");
+      if (scenario.blocked) assert.match(report.actions[0].reason, /security-sensitive target/);
+      assert.equal(hasPrCloseCall(paths.ghLogPath), !scenario.blocked);
+      assert.equal(
+        ghCalls(paths.ghLogPath).some((call) => call.args[0] === "comment-body"),
+        !scenario.blocked,
+      );
+      if (!scenario.blocked) {
+        assert.equal(
+          ghCalls(paths.ghLogPath).filter((call) => call.args[1]?.includes("/pulls/101/reviews?"))
+            .length,
+          1,
+        );
+      }
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+}
+
+for (const endpoint of ["reviews", "comments"] as const) {
+  test(`repair apply low-signal fails closed when PR ${endpoint} cannot be read`, () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "clawsweeper-apply-result-"));
+    try {
+      const paths = writeApplyFixture(tmp, {
+        action: "close_low_signal",
+        classification: "low_signal",
+      });
+      writeFakeGh(paths.binDir, {
+        issues: { 101: issue({ number: 101, title: "Wording cleanup", pullRequest: true }) },
+        pulls: { 101: pull({ number: 101, title: "Wording cleanup" }) },
+        comments: {},
+        reviewReadFailure: endpoint,
+        logPath: paths.ghLogPath,
+      });
+      writeFakeCodex(paths.binDir);
+
+      assert.throws(
+        () => runApplyResult(paths, { proofDecision: "covered", failIfProofRuns: true }),
+        /required review input unavailable/,
+      );
+      assert.equal(hasPrCloseCall(paths.ghLogPath), false);
+      assert.equal(
+        ghCalls(paths.ghLogPath).some((call) => call.args[0] === "comment-body"),
+        false,
+      );
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+}
+
+for (const scenario of [
+  {
+    name: "opt-in",
+    jobReplace: ["allow_low_signal_pr_close: true", "allow_low_signal_pr_close: false"],
+    reason: /requires allow_low_signal_pr_close/,
+  },
+  {
+    name: "intent",
+    jobReplace: ["triage_policy: low_signal_prs", "triage_policy: cluster_repair"],
+    reason: /requires triage_policy/,
+  },
+  {
+    name: "candidate",
+    jobReplace: ["candidates:\n  - '#101'", "candidates:\n  - '#202'"],
+    reason: /not listed in job candidates/,
+  },
+  {
+    name: "freshness",
+    issue: { updated_at: "2026-05-26T00:00:00Z" },
+    reason: /target changed since worker review/,
+  },
+  {
+    name: "maintainer author",
+    issue: { author_association: "MEMBER" },
+    reason: /author association is MEMBER/,
+  },
+  {
+    name: "maintainer comment",
+    comments: [{ ...comment("alice", "Reviewing."), author_association: "MEMBER" }],
+    reason: /maintainer issue comment/,
+  },
+  {
+    name: "maintainer review",
+    reviews: [{ ...comment("alice", "Reviewing."), author_association: "MEMBER" }],
+    reason: /maintainer PR review/,
+  },
+]) {
+  test(`repair apply low-signal preserves ${scenario.name} guard`, () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "clawsweeper-apply-result-"));
+    try {
+      const paths = writeApplyFixture(tmp, {
+        action: "close_low_signal",
+        classification: "low_signal",
+      });
+      if (scenario.jobReplace) {
+        fs.writeFileSync(
+          paths.jobPath,
+          fs
+            .readFileSync(paths.jobPath, "utf8")
+            .replace(scenario.jobReplace[0], scenario.jobReplace[1]),
+        );
+      }
+      writeFakeGh(paths.binDir, {
+        issues: {
+          101: {
+            ...issue({ number: 101, title: "Wording cleanup", pullRequest: true }),
+            ...scenario.issue,
+          },
+        },
+        pulls: { 101: pull({ number: 101, title: "Wording cleanup" }) },
+        comments: { 101: scenario.comments ?? [] },
+        reviews: { 101: scenario.reviews ?? [] },
+        logPath: paths.ghLogPath,
+      });
+      writeFakeCodex(paths.binDir);
+
+      runApplyResult(paths, { proofDecision: "covered", failIfProofRuns: true });
+
+      const report = JSON.parse(fs.readFileSync(paths.reportPath, "utf8"));
+      assert.equal(report.actions[0].status, "blocked");
+      assert.match(report.actions[0].reason, scenario.reason);
+      if (fs.existsSync(paths.ghLogPath)) {
+        assert.equal(hasPrCloseCall(paths.ghLogPath), false);
+        assert.equal(
+          ghCalls(paths.ghLogPath).some((call) => call.args[0] === "comment-body"),
+          false,
+        );
+      }
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+}
+
 test("repair apply blocks PR duplicate close when coverage proof keeps the source open", () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "clawsweeper-apply-result-"));
   try {
@@ -1137,6 +1329,9 @@ type FakeGhData = {
   issues: Record<number, Record<string, unknown>>;
   pulls: Record<number, Record<string, unknown>>;
   comments: Record<number, Record<string, unknown>[]>;
+  reviews?: Record<number, Record<string, unknown>[]>;
+  reviewComments?: Record<number, Record<string, unknown>[]>;
+  reviewReadFailure?: "reviews" | "comments";
   prViewFailure?: { number: number; message: string };
   afterProofPath?: string;
   postProofIssues?: Record<number, Record<string, unknown>>;
@@ -1147,6 +1342,7 @@ type FakeGhData = {
 };
 
 function writeApplyFixture(tmp: string, action: ApplyFixtureAction): ApplyFixturePaths {
+  const lowSignal = action.action === "close_low_signal";
   const binDir = path.join(tmp, "bin");
   const runDir = path.join(tmp, "run");
   const jobPath = path.join(tmp, "job.md");
@@ -1170,16 +1366,16 @@ function writeApplyFixture(tmp: string, action: ApplyFixtureAction): ApplyFixtur
       "  - '#303'",
       "candidates:",
       "  - '#101'",
-      "maintainer_close_refs:",
-      "  - '#101'",
+      ...(lowSignal ? [] : ["maintainer_close_refs:", "  - '#101'"]),
       "cluster_refs:",
       "  - '#101'",
       "  - '#202'",
       "  - '#303'",
-      "allow_instant_close: true",
+      `allow_instant_close: ${!lowSignal}`,
       "allow_post_merge_close: true",
       "allow_unmerged_fix_close: true",
-      "require_fix_before_close: false",
+      `require_fix_before_close: ${lowSignal}`,
+      ...(lowSignal ? ["triage_policy: low_signal_prs", "allow_low_signal_pr_close: true"] : []),
       "---",
       "Repair job.",
       "",
@@ -1332,6 +1528,17 @@ if (args[0] === "api") {
   }
   if (args[1] === "graphql") {
     write({ data: { repository: { pullRequest: { reviewThreads: { pageInfo: { hasNextPage: false }, nodes: [] } } } } });
+    process.exit(0);
+  }
+  match = url.pathname.match(/\\/pulls\\/(\\d+)\\/(reviews|comments)$/);
+  if (match) {
+    if (data.reviewReadFailure === match[2]) {
+      process.stderr.write("required review input unavailable\\n");
+      process.exit(1);
+    }
+    const entries = match[2] === "reviews" ? data.reviews : data.reviewComments;
+    const values = entries?.[Number(match[1])] || [];
+    write(args.includes("--slurp") ? [values] : values);
     process.exit(0);
   }
 }
