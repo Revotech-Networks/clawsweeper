@@ -13812,6 +13812,48 @@ test("runtime budget only trips after a positive elapsed limit", () => {
   assert.equal(runtimeBudgetExceeded(1000, 5000, 6000), true);
 });
 
+for (const exitCode of [0, 1]) {
+  test(`runCodex rejects stale output when exit ${exitCode} writes no decision`, () => {
+    const root = mkdtempSync(tmpPrefix);
+    const openclawDir = join(root, "openclaw");
+    const workDir = join(root, "codex-work");
+    const binDir = join(root, "bin");
+    for (const directory of [openclawDir, workDir, binDir]) {
+      mkdirSync(directory, { recursive: true });
+    }
+    execFileSync("git", ["init"], { cwd: openclawDir, stdio: "ignore" });
+    writeFileSync(join(workDir, "83393.json"), JSON.stringify(closeDecision()));
+    const codexPath = join(binDir, "codex");
+    writeFileSync(codexPath, `#!/usr/bin/env node\nprocess.exit(${exitCode});\n`);
+    chmodSync(codexPath, 0o755);
+    const originalPath = process.env.PATH;
+    process.env.PATH = `${binDir}${delimiter}${process.env.PATH ?? ""}`;
+    try {
+      assert.throws(
+        () =>
+          runCodexForTest({
+            item: item({ number: 83393 }),
+            context: { issue: {}, comments: [], timeline: [] },
+            git: { mainSha: "abc123", latestRelease: null },
+            model: "gpt-test",
+            openclawDir,
+            reasoningEffort: "high",
+            sandboxMode: "read-only",
+            serviceTier: "",
+            timeoutMs: 10_000,
+            workDir,
+            prompt: "Return a current review decision.",
+          }),
+        exitCode === 0 ? /did not produce output/ : /review failed.*exit 1/,
+      );
+    } finally {
+      if (originalPath === undefined) delete process.env.PATH;
+      else process.env.PATH = originalPath;
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+}
+
 test("runCodex accepts valid structured output after non-zero Codex exit", () => {
   const root = mkdtempSync(tmpPrefix);
   const openclawDir = join(root, "openclaw");
