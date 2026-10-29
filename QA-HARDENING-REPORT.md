@@ -1,16 +1,21 @@
 # ClawSweeper audit and hardening report
 
-Status: in progress. Source delivery: **6 P1 repairs and 2 Ponytail repairs are
-MERGED + TARGET-VERIFIED**. Accepted lifecycles at this report's preparation are
-**1 P1 and 0 Ponytail**. After this report merges and its fetched target is
-verified, the accepted total becomes **3 P1 and 1 Ponytail**. The P1 repairs are:
+Status: in progress. Source delivery: **6 P1 repairs and 3 Ponytail repairs are
+MERGED + TARGET-VERIFIED**. Accepted lifecycles before this report's delivery are
+**3 P1 and 1 Ponytail**. After this report merges and its fetched target is
+verified, the accepted total becomes **3 P1 and 2 Ponytail**. The accepted P1
+repairs remain:
 
 - https://github.com/Revotech-Networks/clawsweeper/pull/18.
 - https://github.com/Revotech-Networks/clawsweeper/pull/16.
 - https://github.com/Revotech-Networks/clawsweeper/pull/23.
 
-The separate Ponytail simplification is
-https://github.com/Revotech-Networks/clawsweeper/pull/22.
+The separate Ponytail simplifications are:
+
+- https://github.com/Revotech-Networks/clawsweeper/pull/22.
+- https://github.com/Revotech-Networks/clawsweeper/pull/26, pending this report's
+  delivery and fetched-target verification.
+
 P0, F0, and F1 remain zero.
 
 The historical 3 P1 repairs and 1 Ponytail repair remain withheld because their
@@ -24,7 +29,7 @@ those counts. Coverage remains partial; the sprint is not exhausted.
 - Tracking issue: https://github.com/Revotech-Networks/clawsweeper/issues/1.
 - Target: `main`.
 - Starting target: `213617f23092562b3c2b7b879bd584d05aa0567b`.
-- Last fetched product target: `6bc6e7e07513817bb1806ed0d3dc6a58f5d3201a`.
+- Last fetched product target: `7fa2e7df9757ebe63f04c6a73474425d559be47b`.
 - Start date: 2026-10-29 UTC.
 - Accountable repository thread: `mcp:79b391bb-735c-4f22-b5c4-de62b5253e89`.
 - Portfolio coordinator: `d4ba2482-746c-4bf0-a13d-667f3134c71f`.
@@ -97,8 +102,8 @@ No deployment workflow was dispatched.
 
 | Area                                                      | Current evidence                                                                                                                        | Remaining work                                                          |
 | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Core sweeper, CLI, profiles, review and apply guards      | Discovery complete for named support modules and targeted main/test sections; baseline diagnosed                                        | Reproduce safety candidates and complete main-file coverage             |
-| Repair, automerge, persistence, interruption and recovery | Discovery and independent validation of selected mutation boundaries; bounded intake, import, planner and result-review slices complete | Runtime proofs, remaining large-file sections and notification coverage |
+| Core sweeper, CLI, profiles, review and apply guards      | Full main-file source and named support modules inspected; targeted tests and baseline assessed                                        | Reproduce retained safety candidates and assess remaining tests/docs             |
+| Repair, automerge, persistence, interruption and recovery | Full executor, apply, router and notification source reads added to prior intake, import, planner and result-review coverage | Runtime proofs and remaining helper, publisher and workflow coverage |
 | Dashboard, webhook, operator UI and API                   | Dashboard/webhook source discovery complete; no admitted P1                                                                             | Policy-drift proof, browser/accessibility and bounded-load coverage     |
 | Workflows, actions, configuration and scripts             | Root owns inspection; remote triggers and credential names checked                                                                      | Complete source and delivery-effect assessment                          |
 | Documentation, prompts, schemas and tests                 | Included with owning implementation slices                                                                                              | Resolve material contradictions and record rejections                   |
@@ -112,8 +117,10 @@ merges. No worker may run live automation or claim acceptance.
 Recorded full source reads include the core support modules for arguments, text,
 command execution, Codex environment, commit checks/classification/sweeping,
 GitHub JSON/retries, limits, PR coverage proof/surface statistics, repository
-profiles and stable JSON. The large `src/clawsweeper.ts` and its test file received
-targeted inspection; neither has complete line-by-line coverage.
+profiles and stable JSON. The continuation completed a continuous read of
+`src/clawsweeper.ts` lines 1 through 16,902 at `083f350b`, followed by inspection
+of the reviewed helper-reuse delta. Its large test file still has targeted
+source coverage only.
 
 Repair coverage includes complete reads of the planner, result reviewer, worker,
 configuration, shared library, security signals, target validation, source-PR
@@ -121,8 +128,10 @@ checkout, Git publication, capacity, temporary-gate helpers, post-flight and
 selected execution policies. The latest intake slice read commit-finding,
 issue-implementation, spam-comment, Gitcrawl cluster and low-signal importers,
 job creation/intent and security-boundary modules. Both repair schemas and all
-five repair prompts were read. Large executor, applicator and comment-router
-files remain partially inspected, as do most notification renderers and tests.
+five repair prompts were read. The continuation completed the executor,
+applicator, both comment-router files, and all five notification modules.
+Matching apply/router and notification tests were read within their declared
+packages. Unlisted helper, publisher, test and workflow files remain unassessed.
 
 Both dashboard files and their assigned tests/scripts were read, along with the
 hydrator, limits checker and setup-state action. Associated documentation was
@@ -473,3 +482,93 @@ https://github.com/Revotech-Networks/clawsweeper/issues/14 retain their existing
 owner and STOP condition. The remaining source,
 live-provider, browser, accessibility, and load-test coverage gaps above remain
 open under this repository root.
+
+
+## Canonical-reference helper reuse and source coverage continuation
+
+https://github.com/Revotech-Networks/clawsweeper/issues/25 records a Ponytail
+`reuse` opportunity. Two private helpers had identical parameter types and
+bodies. Both returned the same ordered text in a fresh array. Static comparison
+and caller inspection established that the canonical-link caller could use the
+existing `duplicateCanonicalTexts` helper.
+
+https://github.com/Revotech-Networks/clawsweeper/pull/26 removed the duplicate
+helper and changed its one caller. The source delta is one added line and
+15 deleted lines in `src/clawsweeper.ts`, a net reduction of 14 lines. No test,
+dependency, configuration, or automation policy changed.
+
+The final head was `9c3cc5ce18c91919eb69416240ecf1ad60090870`. Automatic hosted
+Code Review completed at 19:05:16 UTC and Security Review at 19:05:58 UTC, with
+no posted findings. Complete comments, reviews, inline comments, and review
+threads were reconciled before merge. Genuine `pull_request` CI run
+`40936756006` and CodeQL run `40936755749` passed on that head with an actual
+association to this pull request retained before merge. Hosted
+`pnpm run check` passed builds, lint, formatting, 417 unit tests, 537 repair
+tests, and 954 combined coverage tests, with no failures or cancellations.
+
+The optional observer notification was cancelled before any step ran. Its
+provider annotation records supersession by a higher-priority request in the
+repository activity concurrency group. Required CI and CodeQL succeeded.
+GitHub's aggregate merge status was `UNSTABLE` because of that observer result;
+no cancelled check was called successful or retriggered. Current branch
+protection returned "Branch not protected" and the ruleset list was empty.
+The normal expected-head squash merge used no override.
+
+The merge is `7fa2e7df9757ebe63f04c6a73474425d559be47b`. Its fetched whole tree
+`f4effbda230be63f5d3e043dd3818625c3688862` equals the reviewed candidate tree,
+and the source bytes match. Fresh target compilation passed, followed by all
+eight existing duplicate/superseded close-comment regressions. Those tests
+cover canonical references, multiple URLs, ambiguous shorthand, self-links,
+and malformed URLs. No new test module was needed.
+
+The successful local proof used the repository's standard build/config/test
+layout. Compilation took 0.151 seconds and the focused test command took
+0.110 seconds, each within a 20-second bound. The proof process observed a
+cumulative child peak RSS of 109,592 KiB. Initial timing-tool and relocated
+fixture setup failures were retained and corrected without a source change.
+The tests used a deny-by-default fake GitHub command and no provider access.
+The issue is closed and the merged pull request is confirmed unwatched. This
+report's delivery completes its documentation obligation; the simplification
+has no excellence severity.
+
+Eight bounded source-only discovery packages completed during this continuation.
+The root inspected each return and its cited caller/test controls. Continuous
+reads cover the full main source at the pinned revision, the 4,088-line repair
+executor, the 1,697-line applicator, the 2,045-line router core, the 3,385-line
+router CLI, and all five notification modules. Associated tests were read as
+reported by each package; this is not a claim of whole-test-suite source
+inspection. The helper-reuse delta above was assessed separately after those
+reads. No unchanged completed support-module audit was repeated.
+
+The root also read the spam scanner and its core, matching core tests and
+operating documentation, its workflow, the result-publication workflow, the
+job-restoration script, and the setup actions named in the retained coverage
+record. These source reads establish no live installation, provider, deployment,
+browser, accessibility, or load-test result.
+
+Lower-priority observations remain task notes without issues or repair pushes.
+Other caller and authority leads remain unadmitted pending offline proof and
+root classification. An independent offline CLI check substantiated one additional command-routing
+P1. It is privately tracked pending a scoped repair. A subsequent merge attempt
+was not observed because its synthetic follow-up stopped before merge
+validation. That follow-up is not repeated, and no completed lifecycle is added.
+The previously recorded maintainer-policy discrepancy and private disclosure
+boundaries retain their existing dispositions.
+
+Both open Tinypool alerts affect transitive development dependency `tinypool`
+2.1.0 through `oxfmt` 0.47.0. The formatter reaches the affected pool calls,
+but a separate prototype-pollution entry point into its parent process was not
+established. Neither alert was admitted as a repository P1, dismissed, or used
+to justify a dependency update. The upstream
+[worker-option advisory](https://github.com/tinylibs/tinypool/security/advisories/GHSA-5gmw-xhrv-c9v3)
+and [run-option advisory](https://github.com/tinylibs/tinypool/security/advisories/GHSA-85c8-ppgw-ccpr)
+describe the required pollution prerequisite. Repository exploitability remains
+unproved.
+
+This continuation does not exhaust the audit. Unread first-party helpers,
+publishers, scripts, workflows, configuration, tests and documentation remain
+root-owned coverage gaps, alongside the live-provider, browser, accessibility
+and load journeys. https://github.com/Revotech-Networks/clawsweeper/pull/15 and
+https://github.com/Revotech-Networks/clawsweeper/issues/14 remain stopped under
+their existing owner and consumed recovery budget. No additional retry,
+workflow dispatch, settings change, deployment or private disclosure is implied.
