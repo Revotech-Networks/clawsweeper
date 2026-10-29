@@ -1544,11 +1544,24 @@ function validateLowSignalLiveState(
   );
   if (maintainerComments.length > 0) return "maintainer issue comment blocks low-signal auto-close";
 
-  const maintainerReviews = ghPaged(`repos/${repo}/pulls/${target}/reviews`).filter(
-    (review: JsonValue) =>
-      MAINTAINER_AUTHOR_ASSOCIATIONS.has(normalizeAuthorAssociation(review.author_association)),
+  const reviews = ghPaged(`repos/${repo}/pulls/${target}/reviews`);
+  const maintainerReviews = reviews.filter((review: JsonValue) =>
+    MAINTAINER_AUTHOR_ASSOCIATIONS.has(normalizeAuthorAssociation(review.author_association)),
   );
   if (maintainerReviews.length > 0) return "maintainer PR review blocks low-signal auto-close";
+
+  const reviewComments = ghPaged(`repos/${repo}/pulls/${target}/comments`);
+  if (
+    hasDeterministicSecuritySignal({
+      comments: [
+        live.body,
+        reviews.map((review: JsonValue) => review.body ?? review.body_excerpt),
+        reviewComments.map((comment: JsonValue) => comment.body),
+      ],
+    })
+  ) {
+    return "security-sensitive target requires central security triage";
+  }
 
   return "";
 }
