@@ -4976,7 +4976,7 @@ function lowSignalCloseReport(overrides = {}) {
   })}\n\n## Evidence\n\n- **branch shape:** PR diff is mostly unrelated provider churn around a tiny possible useful tweak\n\n## Close Comment\n\nClosing this PR because the branch is not a useful landing base.\n`;
 }
 
-function stalePullRequestReport(overrides = {}) {
+function stalePullRequestReport(overrides: Record<string, unknown> = {}) {
   return `${workPlanCandidateReport({
     repository: "openclaw/openclaw",
     number: 330,
@@ -5000,7 +5000,7 @@ function stalePullRequestReport(overrides = {}) {
     pr_rating_proof: "F",
     pr_rating_patch: "F",
     ...overrides,
-  })}\n\n## Real Behavior Proof\n\nStatus: missing\nEvidence kind: none\nNeeds contributor action: true\nSummary: No live proof was supplied.\n\n## PR Rating\n\nOverall tier: F\nProof tier: F\nPatch tier: F\nSummary: The PR is not merge-ready.\nNext rank-up steps:\n- Rebase and provide proof.\n`;
+  })}\n\n## Real Behavior Proof\n\nStatus: missing\nEvidence kind: none\nNeeds contributor action: true\nSummary: No live proof was supplied.\n\n## PR Rating\n\nOverall tier: ${overrides.pr_rating_overall ?? "F"}\nProof tier: ${overrides.pr_rating_proof ?? "F"}\nPatch tier: ${overrides.pr_rating_patch ?? "F"}\nSummary: The PR is not merge-ready.\nNext rank-up steps:\n- Rebase and provide proof.\n`;
 }
 
 function stripProofAndRatingFrontMatter(report: string): string {
