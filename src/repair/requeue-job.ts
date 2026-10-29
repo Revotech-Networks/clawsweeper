@@ -14,7 +14,8 @@ import {
   validateJob,
   waitForLiveWorkerCapacity,
 } from "./lib.js";
-import { ghJson, ghText } from "./github-cli.js";
+import { ghJson } from "./github-cli.js";
+import { withTemporaryRepositoryGates } from "./temporary-repository-gates.js";
 import { sleepMs } from "./timing.js";
 import { REPAIR_CLUSTER_WORKFLOW } from "./constants.js";
 import { AUTOMATION_LIMITS } from "./limits.js";
@@ -83,18 +84,18 @@ if (!execute) {
   process.exit(0);
 }
 
-const gateRestores: JsonValue[] = [];
 const headSha = currentHeadSha();
 const dispatchStartedAt = new Date(Date.now() - 5000).toISOString();
 
-try {
-  if (openExecuteWindow && ["execute", "autonomous"].includes(mode)) {
-    openGate("CLAWSWEEPER_ALLOW_EXECUTE");
-    if (job.frontmatter.allow_fix_pr === true || job.frontmatter.allowed_actions.includes("fix")) {
-      openGate("CLAWSWEEPER_ALLOW_FIX_PR");
-    }
+const temporaryGates: string[] = [];
+if (openExecuteWindow && ["execute", "autonomous"].includes(mode)) {
+  temporaryGates.push("CLAWSWEEPER_ALLOW_EXECUTE");
+  if (job.frontmatter.allow_fix_pr === true || job.frontmatter.allowed_actions.includes("fix")) {
+    temporaryGates.push("CLAWSWEEPER_ALLOW_FIX_PR");
   }
+}
 
+withTemporaryRepositoryGates(repo, temporaryGates, () => {
   assertGateOpenIfNeeded(mode);
   summary.live_worker_capacity_before_dispatch = waitForCapacity
     ? waitForLiveWorkerCapacity({ repo, workflow, requested: 1, maxLiveWorkers })
@@ -111,11 +112,7 @@ try {
     url: run.url,
   }));
   console.log(JSON.stringify(summary, null, 2));
-} finally {
-  for (const gate of gateRestores.reverse()) {
-    setGate(gate.name, gate.previous || "1");
-  }
-}
+});
 
 function resolveFromRunId(runId: string) {
   const fromLedger = readPublishedRunRecord(runId);
@@ -236,17 +233,6 @@ function workflowDisplayName(workflowNameOrFile: string): string {
 function readGate(name: string) {
   const variables = ghJson(["variable", "list", "--repo", repo, "--json", "name,value"]);
   return variables.find((variable: JsonValue) => variable.name === name)?.value ?? "";
-}
-
-function openGate(name: string) {
-  const previous = readGate(name);
-  gateRestores.push({ name, previous });
-  if (previous !== "1") setGate(name, "1");
-}
-
-function setGate(name: string, value: JsonValue) {
-  ghText(["variable", "set", name, "--repo", repo, "--body", String(value ?? "")]);
-  console.log(`${name}=${value}`);
 }
 
 function currentHeadSha() {

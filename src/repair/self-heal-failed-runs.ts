@@ -13,7 +13,8 @@ import {
   validateJob,
   waitForLiveWorkerCapacity,
 } from "./lib.js";
-import { ghErrorText, ghJson, ghText } from "./github-cli.js";
+import { ghErrorText, ghJson } from "./github-cli.js";
+import { withTemporaryRepositoryGates } from "./temporary-repository-gates.js";
 import { sleepMs } from "./timing.js";
 import { REPAIR_CLUSTER_WORKFLOW } from "./constants.js";
 
@@ -81,7 +82,6 @@ if (!execute) {
   process.exit(0);
 }
 
-const gateRestores: JsonValue[] = [];
 const dispatchStartedAt = new Date(Date.now() - 5000).toISOString();
 const headSha = currentHeadSha();
 const ledger = readSelfHealLedger();
@@ -102,11 +102,11 @@ const attempts: LooseRecord[] = candidates.map((candidate: JsonValue) => ({
   status: "pending",
 }));
 
-try {
-  if (openExecuteWindow) {
-    openGate("CLAWSWEEPER_ALLOW_EXECUTE");
-    openGate("CLAWSWEEPER_ALLOW_FIX_PR");
-  } else {
+const temporaryGates = openExecuteWindow
+  ? ["CLAWSWEEPER_ALLOW_EXECUTE", "CLAWSWEEPER_ALLOW_FIX_PR"]
+  : [];
+withTemporaryRepositoryGates(repo, temporaryGates, () => {
+  if (!openExecuteWindow) {
     assertExecuteGateOpenIfNeeded(candidates);
   }
 
@@ -145,11 +145,7 @@ try {
   summary.batch_id = batchId;
   summary.observed_runs = attempts[0]?.observed_runs ?? [];
   console.log(JSON.stringify(summary, null, 2));
-} finally {
-  for (const gate of gateRestores.reverse()) {
-    setGate(gate.name, gate.previous || "1");
-  }
-}
+});
 
 function selectCandidates() {
   const records = readRunRecords();
@@ -410,16 +406,6 @@ function readFixGate() {
   return readGateValue("CLAWSWEEPER_ALLOW_FIX_PR", { preferEnv: true });
 }
 
-function openGate(name: string) {
-  const previous = readGate(name);
-  gateRestores.push({ name, previous });
-  if (previous !== "1") setGate(name, "1");
-}
-
-function readGate(name: string) {
-  return readGateValue(name, { preferEnv: false });
-}
-
 function readGateValue(name: string, { preferEnv }: { preferEnv: boolean }) {
   const envValue = process.env[name];
   if (preferEnv && envValue !== undefined && envValue !== "") return envValue;
@@ -438,11 +424,6 @@ function readRepoVariables() {
     }
     throw error;
   }
-}
-
-function setGate(name: string, value: JsonValue) {
-  ghText(["variable", "set", name, "--repo", repo, "--body", String(value ?? "")]);
-  console.log(`${name}=${value}`);
 }
 
 function currentHeadSha() {
