@@ -3,8 +3,15 @@
 Status: in progress. Source delivery: **6 P1 repairs and 2 Ponytail repairs are
 MERGED + TARGET-VERIFIED**. Accepted lifecycles at this report's preparation are
 **1 P1 and 0 Ponytail**. After this report merges and its fetched target is
-verified, the accepted total becomes **3 P1 and 1 Ponytail**: PR18, PR16, PR23,
-and the separate PR22 simplification. P0, F0, and F1 remain zero.
+verified, the accepted total becomes **3 P1 and 1 Ponytail**. The P1 repairs are:
+
+- https://github.com/Revotech-Networks/clawsweeper/pull/18.
+- https://github.com/Revotech-Networks/clawsweeper/pull/16.
+- https://github.com/Revotech-Networks/clawsweeper/pull/23.
+
+The separate Ponytail simplification is
+https://github.com/Revotech-Networks/clawsweeper/pull/22.
+P0, F0, and F1 remain zero.
 
 The historical 3 P1 repairs and 1 Ponytail repair remain withheld because their
 mandatory exact-head PR-associated CI/CodeQL receipts are absent. Their prior
@@ -82,7 +89,8 @@ tests, builds, lint, coverage thresholds and formatting. Independent adversarial
 review approved that exact head with no blockers. Hosted Code/Security review,
 CI run `40825105092`, and CodeQL run `40825107883` passed. The normal squash merge
 is `c2a974610455ae15e7724f70f256a8108b67fe6c`; its fetched tree matches the
-verified head and all three affected regressions pass. Issue 2 is closed.
+verified head and all three affected regressions pass.
+https://github.com/Revotech-Networks/clawsweeper/issues/2 is closed.
 No deployment workflow was dispatched.
 
 ## Coverage
@@ -175,7 +183,8 @@ Accepted excellence findings:
   linked; its history remains retained. Normal squash merge
   `c150e001ed26d6f8e07928a553613c7932bed000` has the same source, tests, scripts
   and configuration as that head, plus the already published QA report. All twelve
-  layout scenarios and the limits checker pass on fetched main. Issue 4 is closed.
+  layout scenarios and the limits checker pass on fetched main.
+  https://github.com/Revotech-Networks/clawsweeper/issues/4 is closed.
 - P1: https://github.com/Revotech-Networks/clawsweeper/issues/6 — a review that
   writes no decision can reuse a previous decision as current. The actual
   production-function reproduction returned an old close decision after a
@@ -192,7 +201,7 @@ Accepted excellence findings:
   `d7c00a7da34208ce87c04e8614f30fb9271d3f55` retains the exact reviewed source
   and test files. Fresh compilation on fetched main and all three affected
   regressions pass; integration also passes all 16 intake tests and the limits
-  checker. Issue 6 is closed.
+  checker. https://github.com/Revotech-Networks/clawsweeper/issues/6 is closed.
 - P1: https://github.com/Revotech-Networks/clawsweeper/issues/10 — both enabled
   issue-implementation intake kinds abort before job creation because the PR
   search uses POST instead of GET. Independent validation confirmed the supported
@@ -208,7 +217,7 @@ Accepted excellence findings:
   findings at that head. Normal squash merge
   `a716ebedf76d10ba6c18d06286d0d85dbc9b802e` has the same fetched tree as the
   tested head. Fresh merged-source compilation, all 16 intake tests and the limits
-  checker pass. Issue 10 is closed.
+  checker pass. https://github.com/Revotech-Networks/clawsweeper/issues/10 is closed.
 
 Accepted ponytail finding:
 
@@ -228,8 +237,8 @@ Accepted ponytail finding:
   `f154849dc1abb6d6299b803370fbd910dbfe46de` has the same fetched tree as the
   reviewed head. On the merged revision, the unbuilt CLI passes unchanged docs
   and rejects both derived-value and extra raw-config-field drift in disposable
-  fixtures. Issue 5 is closed. No current correctness mismatch or excellence
-  classification is claimed.
+  fixtures. https://github.com/Revotech-Networks/clawsweeper/issues/5 is closed.
+  No current correctness mismatch or excellence classification is claimed.
 
 Other safety candidates remain unadmitted pending runtime proof and appropriate
 disclosure handling. Targeted source reviews do not establish full coverage.
@@ -316,9 +325,27 @@ unchanged retrigger, settings change or CI waiver is authorized.
 Open candidates, rejected leads, exact review heads, merged commits, and
 post-merge verification will be recorded here as evidence becomes available.
 The sprint is not exhausted, and the tracking issue remains open. Paginated live
-readback and individual closeout state show issues 2, 4, 5, 6 and 10 closed after
-verification, and PRs 3, 7, 8, 9, 11, 12 and 13 merged. Issue 14 and PR 15 remain
-open and uncounted. Unapproved private findings remain in private tracking.
+readback and individual closeout state show these issues closed after verification:
+
+- https://github.com/Revotech-Networks/clawsweeper/issues/2.
+- https://github.com/Revotech-Networks/clawsweeper/issues/4.
+- https://github.com/Revotech-Networks/clawsweeper/issues/5.
+- https://github.com/Revotech-Networks/clawsweeper/issues/6.
+- https://github.com/Revotech-Networks/clawsweeper/issues/10.
+
+The corresponding merged pull requests are:
+
+- https://github.com/Revotech-Networks/clawsweeper/pull/3.
+- https://github.com/Revotech-Networks/clawsweeper/pull/7.
+- https://github.com/Revotech-Networks/clawsweeper/pull/8.
+- https://github.com/Revotech-Networks/clawsweeper/pull/9.
+- https://github.com/Revotech-Networks/clawsweeper/pull/11.
+- https://github.com/Revotech-Networks/clawsweeper/pull/12.
+- https://github.com/Revotech-Networks/clawsweeper/pull/13.
+
+https://github.com/Revotech-Networks/clawsweeper/issues/14 and
+https://github.com/Revotech-Networks/clawsweeper/pull/15 remain open and uncounted.
+Unapproved private findings remain in private tracking.
 The approved Pages/dashboard guard is merged and verified as described above;
 other disclosure decisions and publication workflows remain separate.
 Unadmitted candidates and incomplete coverage remain root-owned; no audit
@@ -328,12 +355,15 @@ exhaustion is claimed.
 
 The following source candidates are public after separate authenticated owner
 visibility decisions. Their private tracking and reproductions remain private.
-PR18 completed its lifecycle through report PR19, which merged as
+https://github.com/Revotech-Networks/clawsweeper/pull/18 completed its lifecycle
+through report https://github.com/Revotech-Networks/clawsweeper/pull/19,
+which merged as
 `369d0bf9b2913569d3c677ed6c5cedc75b836724` from
 `831dadf50da487880e0c981b4507917ccd5bd5bd`, after genuine PR-associated CI
 `40901495002` and CodeQL `40901495190` passed. Its fetched tree equals the
-verified candidate. This completes PR18's report obligation and restores no
-historical count.
+verified candidate. This completes the report obligation for
+https://github.com/Revotech-Networks/clawsweeper/pull/18 and restores no historical
+count.
 
 - https://github.com/Revotech-Networks/clawsweeper/pull/16 — exact head
   `840c4ce88690788fcc127073dc647237238f4f70`; approved source and wording unchanged.
@@ -353,7 +383,8 @@ historical count.
   notification job was cancelled before any steps because a newer activity request
   superseded it; GitHub's annotation confirms the repository concurrency group.
 
-The noncounting guard PR17 passed genuine `pull_request` CI `40897169396`
+The noncounting guard https://github.com/Revotech-Networks/clawsweeper/pull/17
+passed genuine `pull_request` CI `40897169396`
 and CodeQL `40897169703`, bound to its exact head and PR number. Code/Security
 review completed with no posted finding. The fetched merge tree matches the
 premerge integration calculation, and both workflow files retain the exact
@@ -361,10 +392,12 @@ reviewed bytes. The only changes from its prior main are the two job conditions.
 A fresh nonpublishing docs build passed in 0.152 seconds and generated 30 files.
 These are prospective receipts, not replacements for historical manual runs.
 
-PR16 initially lacked matching PR-associated CI and CodeQL runs. Its single
+https://github.com/Revotech-Networks/clawsweeper/pull/16 initially lacked matching
+PR-associated CI and CodeQL runs. Its single
 separately authorized unchanged-head close/reopen recovery succeeded. The
 original missing-run evidence remains retained; the recovery and final delivery
-are recorded below. PR15's existing event-delivery stop remains unchanged. No
+are recorded below. The existing event-delivery stop for
+https://github.com/Revotech-Networks/clawsweeper/pull/15 remains unchanged. No
 further retrigger, manual-dispatch equivalence, settings change, or CI waiver
 is inferred.
 
@@ -382,8 +415,9 @@ merges preserved repository controls. No source correction was required.
 | https://github.com/Revotech-Networks/clawsweeper/pull/23 | `bbf2160cadfc07c99558b498c2bdfeb7c043ee61` | `40910606946` | `40910606638` | `4cfc7fb5da34a17211fd0dad99ffcb2e8b59e113` |
 | https://github.com/Revotech-Networks/clawsweeper/pull/22 | `44d6cd1492dbc10630f4037417d908cc21a098e3` | `40909565424` | `40909565201` | `6bc6e7e07513817bb1806ed0d3dc6a58f5d3201a` |
 
-PR16 validates repair finalization metadata. Its source and test files on fetched
-main match the reviewed bytes. The complete fetched tree equals the premerge
+https://github.com/Revotech-Networks/clawsweeper/pull/16 validates repair
+finalization metadata. Its source and test files on fetched main match the reviewed
+bytes. The complete fetched tree equals the premerge
 integration calculation. Fresh `tsgo -p tsconfig.repair.json` compilation passed,
 followed by all 12 tests in `test/repair/post-flight.test.ts`.
 
@@ -393,8 +427,9 @@ CommonJS package boundary in that scratch directory corrected the setup.
 The failed log remains retained. No source changed, and the corrected run passed
 12 tests in 1.416 seconds with no failures, cancellations, or timeouts.
 
-PR23 aligns low-signal policy checks. All four changed source and test files on
-fetched main match the reviewed bytes, and the complete tree equals the calculated
+https://github.com/Revotech-Networks/clawsweeper/pull/23 aligns low-signal policy
+checks. All four changed source and test files on fetched main match the reviewed
+bytes, and the complete tree equals the calculated
 integration. Fresh repair compilation passed. This command passed all 64 tests
 on the merged source in 41.528 seconds:
 
@@ -404,10 +439,13 @@ node --test --test-concurrency=1 test/repair/apply-result.test.ts test/repair/re
 
 Those tests include the 52 reviewer and applicator cases and all 12 post-flight
 cases. The run had zero failures, cancellations, and timeouts. Peak child RSS
-was 150,180 KiB. Private tracking for PR16 and PR23 is closed as remediated and
+was 150,180 KiB. Private tracking for
+https://github.com/Revotech-Networks/clawsweeper/pull/16 and
+https://github.com/Revotech-Networks/clawsweeper/pull/23 is closed as remediated and
 remains unpublished. Private reproduction and impact details remain private.
 
-PR22 is the Ponytail `delete` finding in
+https://github.com/Revotech-Networks/clawsweeper/pull/22 is the Ponytail `delete`
+finding in
 https://github.com/Revotech-Networks/clawsweeper/issues/21. It removes unused
 docs-builder compatibility probes, with five added lines and 39 deleted lines.
 Independent original and candidate builds in the same directory produced 30
@@ -418,8 +456,9 @@ On fetched merge `6bc6e7e07513817bb1806ed0d3dc6a58f5d3201a`, the builder matches
 the reviewed bytes. `node scripts/build-docs-site.mjs` passed without publishing
 in 0.118 seconds and generated 30 files with 22 unique canonical URLs. Its
 1,106,416-byte output retains the existing cwd-derived title, which differs from
-the independent fixture's directory name. Issue21 is closed. This simplification
-has no excellence severity and is counted separately.
+the independent fixture's directory name.
+https://github.com/Revotech-Networks/clawsweeper/issues/21 is closed. This
+simplification has no excellence severity and is counted separately.
 
 The local commands were focused, sequential, and bounded. No new large local
 suite or installer ran during the portfolio's finite hold. Each candidate's
@@ -428,7 +467,9 @@ deployment conditions remain unchanged. No live apply, deployment, workflow
 dispatch, settings change, or additional event-recovery attempt was performed.
 
 This report's delivery completes the documentation obligation for the three
-newly verified repairs. It does not complete the repository audit. PR15 and
-issue14 retain their existing owner and STOP condition. The remaining source,
+newly verified repairs. It does not complete the repository audit.
+https://github.com/Revotech-Networks/clawsweeper/pull/15 and
+https://github.com/Revotech-Networks/clawsweeper/issues/14 retain their existing
+owner and STOP condition. The remaining source,
 live-provider, browser, accessibility, and load-test coverage gaps above remain
 open under this repository root.
