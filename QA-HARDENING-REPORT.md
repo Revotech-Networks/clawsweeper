@@ -1,14 +1,15 @@
 # ClawSweeper audit and hardening report
 
-Status: in progress. Source delivery: **4 P1 repairs and 1 Ponytail repair are
-MERGED + TARGET-VERIFIED**. Full-lifecycle acceptance: **1 P1 and 0 Ponytail**.
-The accepted P1 is the gate-restoration repair in
-https://github.com/Revotech-Networks/clawsweeper/pull/18. Its report obligation
-completed through https://github.com/Revotech-Networks/clawsweeper/pull/19 and
-fetched-target verification. The historical 3 P1 repairs and 1 Ponytail repair
-remain withheld because their mandatory exact-head PR-associated CI/CodeQL
-receipts are absent. Their prior completion claims remain superseded. Coverage
-remains partial; the sprint is not exhausted.
+Status: in progress. Source delivery: **6 P1 repairs and 2 Ponytail repairs are
+MERGED + TARGET-VERIFIED**. Accepted lifecycles at this report's preparation are
+**1 P1 and 0 Ponytail**. After this report merges and its fetched target is
+verified, the accepted total becomes **3 P1 and 1 Ponytail**: PR18, PR16, PR23,
+and the separate PR22 simplification. P0, F0, and F1 remain zero.
+
+The historical 3 P1 repairs and 1 Ponytail repair remain withheld because their
+mandatory exact-head PR-associated CI/CodeQL receipts are absent. Their prior
+completion claims remain superseded. New PR-event evidence does not restore
+those counts. Coverage remains partial; the sprint is not exhausted.
 
 ## Scope and ownership
 
@@ -16,7 +17,7 @@ remains partial; the sprint is not exhausted.
 - Tracking issue: https://github.com/Revotech-Networks/clawsweeper/issues/1.
 - Target: `main`.
 - Starting target: `213617f23092562b3c2b7b879bd584d05aa0567b`.
-- Last fetched target: `588cb4c0723affbd9d41b75dee7c4fbcec8fd465`.
+- Last fetched product target: `6bc6e7e07513817bb1806ed0d3dc6a58f5d3201a`.
 - Start date: 2026-10-29 UTC.
 - Accountable repository thread: `mcp:79b391bb-735c-4f22-b5c4-de62b5253e89`.
 - Portfolio coordinator: `d4ba2482-746c-4bf0-a13d-667f3134c71f`.
@@ -327,7 +328,7 @@ exhaustion is claimed.
 
 The following source candidates are public after separate authenticated owner
 visibility decisions. Their private tracking and reproductions remain private.
-PR18 has completed its lifecycle; PR16 remains open. Report PR19 merged as
+PR18 completed its lifecycle through report PR19, which merged as
 `369d0bf9b2913569d3c677ed6c5cedc75b836724` from
 `831dadf50da487880e0c981b4507917ccd5bd5bd`, after genuine PR-associated CI
 `40901495002` and CodeQL `40901495190` passed. Its fetched tree equals the
@@ -360,7 +361,74 @@ reviewed bytes. The only changes from its prior main are the two job conditions.
 A fresh nonpublishing docs build passed in 0.152 seconds and generated 30 files.
 These are prospective receipts, not replacements for historical manual runs.
 
-PR16's latest observation at the unchanged approved head still has no matching
-PR-associated CI or CodeQL runs; its Code/Security review is clean. Merge remains
-held. PR15's existing event-delivery stop also remains unchanged. No retry,
-manual-dispatch equivalence, settings change or CI waiver is inferred.
+PR16 initially lacked matching PR-associated CI and CodeQL runs. Its single
+separately authorized unchanged-head close/reopen recovery succeeded. The
+original missing-run evidence remains retained; the recovery and final delivery
+are recorded below. PR15's existing event-delivery stop remains unchanged. No
+further retrigger, manual-dispatch equivalence, settings change, or CI waiver
+is inferred.
+
+## Verified merge wave on 2026-10-29
+
+The root reconciled all posted reviews, conversation comments, inline comments,
+and review threads before each merge. Hosted Code and Security reviews completed
+without findings on all three exact heads. Genuine `pull_request` CI and CodeQL
+runs passed for the corresponding PR and head. Normal expected-head squash
+merges preserved repository controls. No source correction was required.
+
+| PR | Exact reviewed head | CI run | CodeQL run | Merge commit |
+| --- | --- | --- | --- | --- |
+| https://github.com/Revotech-Networks/clawsweeper/pull/16 | `840c4ce88690788fcc127073dc647237238f4f70` | `40908210113` | `40908210319` | `76e329ff65dd4fcbd0ebbc1ef04b525dd7c8e126` |
+| https://github.com/Revotech-Networks/clawsweeper/pull/23 | `bbf2160cadfc07c99558b498c2bdfeb7c043ee61` | `40910606946` | `40910606638` | `4cfc7fb5da34a17211fd0dad99ffcb2e8b59e113` |
+| https://github.com/Revotech-Networks/clawsweeper/pull/22 | `44d6cd1492dbc10630f4037417d908cc21a098e3` | `40909565424` | `40909565201` | `6bc6e7e07513817bb1806ed0d3dc6a58f5d3201a` |
+
+PR16 validates repair finalization metadata. Its source and test files on fetched
+main match the reviewed bytes. The complete fetched tree equals the premerge
+integration calculation. Fresh `tsgo -p tsconfig.repair.json` compilation passed,
+followed by all 12 tests in `test/repair/post-flight.test.ts`.
+
+The first focused run used a scratch TMPDIR inside the repository, so its fake
+CommonJS executables inherited the repository's ESM setting. An explicit
+CommonJS package boundary in that scratch directory corrected the setup.
+The failed log remains retained. No source changed, and the corrected run passed
+12 tests in 1.416 seconds with no failures, cancellations, or timeouts.
+
+PR23 aligns low-signal policy checks. All four changed source and test files on
+fetched main match the reviewed bytes, and the complete tree equals the calculated
+integration. Fresh repair compilation passed. This command passed all 64 tests
+on the merged source in 41.528 seconds:
+
+```bash
+node --test --test-concurrency=1 test/repair/apply-result.test.ts test/repair/review-results.test.ts test/repair/post-flight.test.ts
+```
+
+Those tests include the 52 reviewer and applicator cases and all 12 post-flight
+cases. The run had zero failures, cancellations, and timeouts. Peak child RSS
+was 150,180 KiB. Private tracking for PR16 and PR23 is closed as remediated and
+remains unpublished. Private reproduction and impact details remain private.
+
+PR22 is the Ponytail `delete` finding in
+https://github.com/Revotech-Networks/clawsweeper/issues/21. It removes unused
+docs-builder compatibility probes, with five added lines and 39 deleted lines.
+Independent original and candidate builds in the same directory produced 30
+byte-identical files totaling 1,106,414 bytes. The committed script matches that
+experiment. Custom global injection is outside the documented caller contract.
+
+On fetched merge `6bc6e7e07513817bb1806ed0d3dc6a58f5d3201a`, the builder matches
+the reviewed bytes. `node scripts/build-docs-site.mjs` passed without publishing
+in 0.118 seconds and generated 30 files with 22 unique canonical URLs. Its
+1,106,416-byte output retains the existing cwd-derived title, which differs from
+the independent fixture's directory name. Issue21 is closed. This simplification
+has no excellence severity and is counted separately.
+
+The local commands were focused, sequential, and bounded. No new large local
+suite or installer ran during the portfolio's finite hold. Each candidate's
+required full `pnpm run check` passed in hosted CI. The existing upstream-only
+deployment conditions remain unchanged. No live apply, deployment, workflow
+dispatch, settings change, or additional event-recovery attempt was performed.
+
+This report's delivery completes the documentation obligation for the three
+newly verified repairs. It does not complete the repository audit. PR15 and
+issue14 retain their existing owner and STOP condition. The remaining source,
+live-provider, browser, accessibility, and load-test coverage gaps above remain
+open under this repository root.
