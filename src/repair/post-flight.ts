@@ -156,6 +156,7 @@ function finalizeFixPr(action: LooseRecord) {
     return finalizeIssueImplementationPr({ base, parsed });
   }
 
+  const reviewedCommit = action.commit;
   const deadline = Date.now() + POST_FLIGHT_WAIT_MS;
   let pull;
   let view;
@@ -177,6 +178,18 @@ function finalizeFixPr(action: LooseRecord) {
         reason: "already merged",
         merged_at: mergedAt,
         merge_commit_sha: pull.merge_commit_sha ?? view.mergeCommit?.oid ?? null,
+        waited_ms: waitedMs,
+      };
+    }
+
+    if (typeof reviewedCommit !== "string" || !/^[0-9a-f]{40}$/.test(reviewedCommit)) {
+      return { ...prBase, status: "blocked", reason: "reviewed commit is missing or invalid" };
+    }
+    if (pull.head?.sha !== reviewedCommit) {
+      return {
+        ...prBase,
+        status: "blocked",
+        reason: "pull request head does not match reviewed commit",
         waited_ms: waitedMs,
       };
     }
@@ -223,11 +236,11 @@ function finalizeFixPr(action: LooseRecord) {
   const mergeMessage = buildRepairSquashMergeMessage({
     target: parsed.number,
     title: view.title ?? pull.title,
-    headSha: pull.head?.sha,
+    headSha: reviewedCommit,
     preflight: action.merge_preflight,
     reason: "merged by ClawSweeper Repair post-flight",
   });
-  const bodyFile = writeRepairSquashMergeBody(parsed.number, pull.head?.sha, mergeMessage.body);
+  const bodyFile = writeRepairSquashMergeBody(parsed.number, reviewedCommit, mergeMessage.body);
   const mergeArgs = [
     "pr",
     "merge",
@@ -239,8 +252,9 @@ function finalizeFixPr(action: LooseRecord) {
     String(mergeMessage.subject),
     "--body-file",
     bodyFile,
+    "--match-head-commit",
+    reviewedCommit,
   ];
-  if (pull.head?.sha) mergeArgs.push("--match-head-commit", String(pull.head.sha));
   try {
     ghWithRetry(mergeArgs);
   } catch (error) {
