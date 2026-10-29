@@ -40,16 +40,6 @@ export type AutomationLimits = {
   };
 };
 
-export type WorkerLane =
-  | "normal_review"
-  | "hot_intake"
-  | "commit_review"
-  | "repair"
-  | "automerge_repair"
-  | "issue_implementation"
-  | "cluster_repair"
-  | "exact_item";
-
 export const WORKER_CONFIG = readWorkerConfig();
 export const AUTOMATION_LIMITS = deriveAutomationLimits(WORKER_CONFIG);
 
@@ -86,61 +76,6 @@ export function deriveAutomationLimits(config: WorkerConfig): AutomationLimits {
       dispatches_per_sweep_default: percent(max, 4),
     },
   };
-}
-
-export function workerLimit(
-  lane: WorkerLane,
-  {
-    activeCritical = 0,
-    activeBackground = 0,
-    config = WORKER_CONFIG,
-    limits = AUTOMATION_LIMITS,
-  }: {
-    activeCritical?: number;
-    activeBackground?: number;
-    config?: WorkerConfig;
-    limits?: AutomationLimits;
-  } = {},
-): number {
-  if (lane === "exact_item") return limits.review_shards.exact_item_default;
-  if (lane === "repair") return priorityLimit(limits.repair_live_runs.default, activeCritical);
-  if (lane === "automerge_repair")
-    return priorityLimit(limits.repair_live_runs.automerge_default, activeCritical);
-  if (lane === "issue_implementation")
-    return priorityLimit(limits.repair_live_runs.issue_implementation_default, activeCritical);
-  if (lane === "cluster_repair")
-    return priorityLimit(limits.repair_live_runs.cluster_default, activeCritical);
-  if (lane === "commit_review")
-    return backgroundLimit(
-      limits.commit_review.page_size_default,
-      activeCritical,
-      activeBackground,
-    );
-  if (lane === "hot_intake")
-    return backgroundLimit(
-      limits.review_shards.hot_intake_default,
-      activeCritical,
-      activeBackground,
-    );
-  return backgroundLimit(limits.review_shards.normal_default, activeCritical, activeBackground);
-
-  function priorityLimit(laneMax: number, active: number): number {
-    const available = Math.max(1, config.workers.max - nonNegative(active));
-    return Math.max(1, Math.min(laneMax, available));
-  }
-
-  function backgroundLimit(laneMax: number, active: number, background: number): number {
-    const rawAvailable =
-      config.workers.max -
-      config.workers.reserve_for_interactive -
-      config.workers.expansion_reserve -
-      nonNegative(active) -
-      nonNegative(background);
-    if (rawAvailable <= 0) return 1;
-    const withFloor =
-      rawAvailable >= config.workers.minimum_background ? rawAvailable : Math.max(1, rawAvailable);
-    return Math.max(1, Math.min(laneMax, withFloor));
-  }
 }
 
 function validateWorkerConfig(value: unknown): WorkerConfig {
@@ -195,10 +130,6 @@ function nonNegativeInteger(root: Record<string, unknown>, path: string): number
     throw new Error(`automation limit ${path} must be a non-negative integer`);
   }
   return value;
-}
-
-function nonNegative(value: number): number {
-  return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
 }
 
 function getPath(root: Record<string, unknown>, path: string): unknown {
