@@ -1,13 +1,14 @@
 # ClawSweeper audit and hardening report
 
 Status: in progress. Source delivery: **4 P1 repairs and 1 Ponytail repair are
-MERGED + TARGET-VERIFIED**. Full-lifecycle acceptance: **0 P1 and 0 Ponytail**.
-The historical 3 P1 repairs and 1 Ponytail repair remain withheld because their
-mandatory exact-head PR-associated CI/CodeQL receipts are absent. The newly
-merged gate-restoration repair has those receipts and fetched-target proof;
-its final acceptance awaits publication of this updated report. Prior historical
-completion claims remain superseded. Coverage remains partial. This report is
-local and awaits publication through normal applicable gates.
+MERGED + TARGET-VERIFIED**. Full-lifecycle acceptance: **1 P1 and 0 Ponytail**.
+The accepted P1 is the gate-restoration repair in
+https://github.com/Revotech-Networks/clawsweeper/pull/18. Its report obligation
+completed through https://github.com/Revotech-Networks/clawsweeper/pull/19 and
+fetched-target verification. The historical 3 P1 repairs and 1 Ponytail repair
+remain withheld because their mandatory exact-head PR-associated CI/CodeQL
+receipts are absent. Their prior completion claims remain superseded. Coverage
+remains partial; the sprint is not exhausted.
 
 ## Scope and ownership
 
@@ -15,7 +16,7 @@ local and awaits publication through normal applicable gates.
 - Tracking issue: https://github.com/Revotech-Networks/clawsweeper/issues/1.
 - Target: `main`.
 - Starting target: `213617f23092562b3c2b7b879bd584d05aa0567b`.
-- Last fetched target: `df1a924d794d42995a9a7872e1ab3ef9d3f137c1`.
+- Last fetched target: `588cb4c0723affbd9d41b75dee7c4fbcec8fd465`.
 - Start date: 2026-10-29 UTC.
 - Accountable repository thread: `mcp:79b391bb-735c-4f22-b5c4-de62b5253e89`.
 - Portfolio coordinator: `d4ba2482-746c-4bf0-a13d-667f3134c71f`.
@@ -130,13 +131,18 @@ No settings other than enabling the repository's Issues feature were changed.
 `pages.yml` deploys on main changes to `docs/**`, its workflow, or the docs build
 script. `dashboard.yml` deploys on main changes to dashboard code, package files,
 its workflows, and selected dashboard scripts. Chris approved upstream-only
-conditions on both entire deploy jobs. The exact two-line change is open in
-https://github.com/Revotech-Networks/clawsweeper/pull/17 at
-`16fad4abcfdf3786b95359cc23e5eff94c6ba607`; it is not yet merged or active on main.
+conditions on both entire deploy jobs. The exact two-line change merged in
+https://github.com/Revotech-Networks/clawsweeper/pull/17 from
+`16fad4abcfdf3786b95359cc23e5eff94c6ba607` as
+`588cb4c0723affbd9d41b75dee7c4fbcec8fd465`. Both conditions are now on main.
 Other publication workflows and already-running jobs are outside this guard.
-The prepublication inventory had no in-flight runs. Nonpublishing docs generation
-passed for 22 pages; existing CI retains dashboard compilation and tests.
-Ordinary source, test, and top-level report changes do not match those deploy filters.
+Fresh premerge inventories had no in-flight runs for either workflow. On the
+merged commit, Pages run `40906651429` and dashboard run `40906651337` each
+completed as skipped; both deploy jobs had zero steps. No preparation, upload,
+secret synchronization or deployment ran in those jobs. Nonpublishing docs
+generation on fetched main passed for 22 pages; existing CI retains dashboard
+compilation and tests. Ordinary source, test, and top-level report changes do
+not match those deploy filters.
 
 Issue and PR events also trigger the GitHub activity workflow. Its hook requires
 a URL, token, and Discord target; all are absent in the inspected repository and
@@ -243,9 +249,6 @@ P1 has separate private draft-advisory tracking; its sensitive evidence and repa
 design remain outside this public report. It has not completed a lifecycle. No
 vulnerability-reporting setting or upstream resource was changed.
 
-The portfolio owner is deciding whether two upstream-only deployment-job guards
-may be added to this fork. Affected dashboard/docs delivery stays held; ordinary
-source/test/script repairs continue. No guard edit is approved or implemented.
 Large local suites have used the portfolio's finite capacity coordination;
 candidate full checks ran in hosted CI. Focused compilation and CLI proofs were
 bounded local work. No recurring resource watcher or competing updater was added.
@@ -254,7 +257,8 @@ bounded local work. No recurring resource watcher or competing updater was added
 
 The portfolio disposition on 2026-10-29 preserves **3 P1 repairs and 1 Ponytail
 repair as MERGED + TARGET-VERIFIED**, but withholds all four from full-lifecycle
-completion totals. Accepted completed lifecycles are **0 P1 and 0 Ponytail**;
+completion totals. Accepted lifecycles from that historical cohort remain
+**0 P1 and 0 Ponytail**;
 P0, F0 and F1 remain **0**. Merges, issue closures, source reviews, fetched-target
 proofs and hydration correction 1 remain valid historical evidence.
 
@@ -313,8 +317,9 @@ post-merge verification will be recorded here as evidence becomes available.
 The sprint is not exhausted, and the tracking issue remains open. Paginated live
 readback and individual closeout state show issues 2, 4, 5, 6 and 10 closed after
 verification, and PRs 3, 7, 8, 9, 11, 12 and 13 merged. Issue 14 and PR 15 remain
-open and uncounted. Private findings remain in private tracking; their disclosure
-and the Pages/dashboard delivery decisions remain separate and pending.
+open and uncounted. Unapproved private findings remain in private tracking.
+The approved Pages/dashboard guard is merged and verified as described above;
+other disclosure decisions and publication workflows remain separate.
 Unadmitted candidates and incomplete coverage remain root-owned; no audit
 exhaustion is claimed.
 
@@ -322,8 +327,12 @@ exhaustion is claimed.
 
 The following source candidates are public after separate authenticated owner
 visibility decisions. Their private tracking and reproductions remain private.
-PR18 is merged and target-verified; PR16 remains open. Full-lifecycle acceptance
-awaits the remaining report gate.
+PR18 has completed its lifecycle; PR16 remains open. Report PR19 merged as
+`369d0bf9b2913569d3c677ed6c5cedc75b836724` from
+`831dadf50da487880e0c981b4507917ccd5bd5bd`, after genuine PR-associated CI
+`40901495002` and CodeQL `40901495190` passed. Its fetched tree equals the
+verified candidate. This completes PR18's report obligation and restores no
+historical count.
 
 - https://github.com/Revotech-Networks/clawsweeper/pull/16 — exact head
   `840c4ce88690788fcc127073dc647237238f4f70`; approved source and wording unchanged.
@@ -343,10 +352,15 @@ awaits the remaining report gate.
   notification job was cancelled before any steps because a newer activity request
   superseded it; GitHub's annotation confirms the repository concurrency group.
 
-The noncounting guard PR17 has genuine `pull_request` runs bound to its exact
-head and PR number: CI `40897169396` and CodeQL `40897169703`. CodeQL passed;
-CI was running at the recorded provenance readback. Code/Security review completed
-with no posted finding. These are prospective receipts, not replacements or
-relabeled versions of the historical manual runs. Full-lifecycle counts remain zero.
-Normal gates, protected merge, fetched-target proof and report publication remain
-required. PR15's existing event-delivery hold remains unchanged.
+The noncounting guard PR17 passed genuine `pull_request` CI `40897169396`
+and CodeQL `40897169703`, bound to its exact head and PR number. Code/Security
+review completed with no posted finding. The fetched merge tree matches the
+premerge integration calculation, and both workflow files retain the exact
+reviewed bytes. The only changes from its prior main are the two job conditions.
+A fresh nonpublishing docs build passed in 0.152 seconds and generated 30 files.
+These are prospective receipts, not replacements for historical manual runs.
+
+PR16's latest observation at the unchanged approved head still has no matching
+PR-associated CI or CodeQL runs; its Code/Security review is clean. Merge remains
+held. PR15's existing event-delivery stop also remains unchanged. No retry,
+manual-dispatch equivalence, settings change or CI waiver is inferred.
