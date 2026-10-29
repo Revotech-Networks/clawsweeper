@@ -223,6 +223,8 @@ process.exit(2);
       cursorPath,
       "--repo",
       "openclaw/clawsweeper",
+      "--owners",
+      "openclaw,steipete",
     ],
     {
       cwd: process.cwd(),
