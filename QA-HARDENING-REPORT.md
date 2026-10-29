@@ -548,8 +548,10 @@ browser, accessibility, or load-test result.
 
 Lower-priority observations remain task notes without issues or repair pushes.
 Other caller and authority leads remain unadmitted pending offline proof and
-root classification. A bounded independent offline CLI check is assessing a new command-routing
-lead. Its result has not been classified or counted.
+root classification. An independent offline CLI check substantiated one additional command-routing
+P1. It is privately tracked pending a scoped repair. A subsequent merge attempt
+was not observed because its synthetic follow-up stopped before merge
+validation. That follow-up is not repeated, and no completed lifecycle is added.
 The previously recorded maintainer-policy discrepancy and private disclosure
 boundaries retain their existing dispositions.
 
