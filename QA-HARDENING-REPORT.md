@@ -1,7 +1,8 @@
 # ClawSweeper audit and hardening report
 
-Status: in progress. Two P1 repairs are merged and verified; their canonical
-report publication completes when this report update merges. Coverage is partial.
+Status: in progress. Three P1 repairs are merged and verified. Two have completed
+report publication; hydration completes that step when this update merges.
+Coverage is partial.
 
 ## Scope and ownership
 
@@ -9,7 +10,7 @@ report publication completes when this report update merges. Coverage is partial
 - Tracking issue: https://github.com/Revotech-Networks/clawsweeper/issues/1.
 - Target: `main`.
 - Starting target: `213617f23092562b3c2b7b879bd584d05aa0567b`.
-- Last verified target: `d7c00a7da34208ce87c04e8614f30fb9271d3f55`.
+- Last verified target: `c150e001ed26d6f8e07928a553613c7932bed000`.
 - Start date: 2026-10-29 UTC.
 - Accountable repository thread: `mcp:79b391bb-735c-4f22-b5c4-de62b5253e89`.
 - Portfolio coordinator: `d4ba2482-746c-4bf0-a13d-667f3134c71f`.
@@ -149,10 +150,14 @@ Accepted excellence findings:
   https://github.com/Revotech-Networks/clawsweeper/pull/7 includes current main.
   Real CLI tests pass for eight unsafe and four supported layouts, including
   chained aliases. The new regression fails on the previous candidate. Focused
-  lint, formatting and diff checks pass. Fresh CI run `40832904622`, CodeQL run
-  `40832907727` and both hosted review components are running. Merge and
-  fetched-target verification remain pending; earlier gates do not approve this
-  correction.
+  lint, formatting and diff checks pass. Fresh CI run `40832904622` passed
+  417 unit, 437 repair and 854 combined coverage tests with zero failures or
+  cancellations. CodeQL run `40832907727` and both hosted review components passed
+  at the corrected head. The original P1 thread was resolved with the fix/proof
+  linked; its history remains retained. Normal squash merge
+  `c150e001ed26d6f8e07928a553613c7932bed000` has the same source, tests, scripts
+  and configuration as that head, plus the already published QA report. All twelve
+  layout scenarios and the limits checker pass on fetched main. Issue 4 is closed.
 - P1: https://github.com/Revotech-Networks/clawsweeper/issues/6 — a review that
   writes no decision can reuse a previous decision as current. The actual
   production-function reproduction returned an old close decision after a
@@ -234,16 +239,20 @@ Large local suites have used the portfolio's finite capacity coordination;
 candidate full checks ran in hosted CI. Focused compilation and CLI proofs were
 bounded local work. No recurring resource watcher or competing updater was added.
 
-Qualifying repairs merged, verified and closed: **2 P1**. Their final lifecycle
-step is this report's repository merge; until that completes, completed qualifying
-lifecycles remain **0**. P0, F0 and F1 completed counts are **0**.
-Completed ponytail repairs: **1**. Merged repair/prerequisite PRs: **4**, comprising
-two P1 repairs, the non-counting baseline prerequisite and the ponytail repair.
+Qualifying repairs merged, verified and closed: **3 P1**. Issues 6 and 10 completed
+their report step in https://github.com/Revotech-Networks/clawsweeper/pull/12 at
+`9fe84bb477d48f22b132e71b63b2d1c7e1db2a5a`; the fetched tree matched the tested
+head, and combined-source CI passed 852 tests. Hydration's final lifecycle step is
+this report update. Completed qualifying lifecycles are **2**, becoming **3** when
+this update merges. P0, F0 and F1 completed counts are **0**.
+Completed ponytail repairs: **1**. Merged repair/prerequisite PRs: **5**, comprising
+three P1 repairs, the non-counting baseline prerequisite and the ponytail repair.
 Closed non-counting baseline issues: **1**. Report-only PRs do not count as findings.
 
 Open candidates, rejected leads, exact review heads, merged commits, and
 post-merge verification will be recorded here as evidence becomes available.
-The sprint is not exhausted, and the tracking issue remains open. The latest
-paginated readback found open tracking issue 1 and hydration issue 4, with PR7
-awaiting corrected-head gates; issues 2, 5, 6 and 10 are closed after verification.
-PRs 3, 8, 9 and 11 are merged. The private finding remains open in private tracking.
+The sprint is not exhausted, and the tracking issue remains open. Paginated live
+readback and individual closeout state show issues 2, 4, 5, 6 and 10 closed after
+verification, and PRs 3, 7, 8, 9, 11 and 12 merged. The private finding remains
+open in private tracking. Unadmitted candidates and incomplete coverage remain
+root-owned; no audit exhaustion is claimed.
