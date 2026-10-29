@@ -94,22 +94,14 @@ fs.writeFileSync(path.join(outDir, "llms.txt"), llmsTxt(), "utf8");
 console.log(`built docs site: ${path.relative(root, outDir)} (${pages.length} pages)`);
 
 function llmsTxt() {
-  const origin = docsOrigin();
-  const source = docsSourceUrl();
-  const name = typeof productName !== "undefined" ? productName : path.basename(root);
-  const description =
-    typeof productDescription !== "undefined" ? productDescription : `${name} documentation index.`;
-  const install = docsInstallHint();
+  const origin = `https://${customDomain}`;
+  const name = path.basename(root);
+  const description = `${name} documentation index.`;
   const docPages = docsLlmsPages().map(
     (page) => `- ${page.title}: ${pageUrl(origin, page.outRel)}`,
   );
   const lines = [`# ${name}`, "", description, "", "Canonical documentation:", ...docPages];
-  if (install) {
-    lines.push("", "Install:", `- ${install}`);
-  }
-  if (source) {
-    lines.push("", `Source: ${source}`);
-  }
+  lines.push("", `Source: ${repoUrl}`);
   lines.push(
     "",
     "Guidance for agents:",
@@ -121,35 +113,9 @@ function llmsTxt() {
 
 function docsLlmsPages() {
   const seen = new Set();
-  const ordered = typeof orderedPages !== "undefined" ? orderedPages : [];
-  return [...ordered, ...pages].filter(
+  return [...orderedPages, ...pages].filter(
     (page) => page.outRel && !seen.has(page.outRel) && seen.add(page.outRel),
   );
-}
-
-function docsOrigin() {
-  const value =
-    (typeof siteBase !== "undefined" && siteBase) ||
-    (typeof siteUrl !== "undefined" && siteUrl) ||
-    (typeof customDomain !== "undefined" && customDomain ? `https://${customDomain}` : "");
-  return value.replace(/\/$/, "");
-}
-
-function docsSourceUrl() {
-  if (typeof repoBase !== "undefined") return repoBase;
-  if (typeof repoUrl !== "undefined") return repoUrl;
-  if (typeof repoEditBase !== "undefined")
-    return repoEditBase.replace(/\/edit\/main\/docs\/?$/, "");
-  return "";
-}
-
-function docsInstallHint() {
-  if (typeof installCommand !== "undefined") return installCommand;
-  if (typeof installLine !== "undefined") return installLine;
-  if (typeof installCmd !== "undefined") return installCmd;
-  if (typeof installSnippet !== "undefined") return installSnippet;
-  if (typeof brewInstall !== "undefined") return brewInstall;
-  return "";
 }
 
 function pageUrl(origin, outRel) {
