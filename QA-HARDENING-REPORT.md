@@ -1,11 +1,13 @@
 # ClawSweeper audit and hardening report
 
-Status: in progress. Source delivery: **3 P1 repairs and 1 Ponytail repair are
+Status: in progress. Source delivery: **4 P1 repairs and 1 Ponytail repair are
 MERGED + TARGET-VERIFIED**. Full-lifecycle acceptance: **0 P1 and 0 Ponytail**.
-All four are withheld from completion totals because mandatory exact-head
-PR-associated CI/CodeQL receipts are absent. Prior completion claims are
-superseded by the reconciliation below. Coverage remains partial. This corrected
-report is local and awaits publication through normal applicable gates.
+The historical 3 P1 repairs and 1 Ponytail repair remain withheld because their
+mandatory exact-head PR-associated CI/CodeQL receipts are absent. The newly
+merged gate-restoration repair has those receipts and fetched-target proof;
+its final acceptance awaits publication of this updated report. Prior historical
+completion claims remain superseded. Coverage remains partial. This report is
+local and awaits publication through normal applicable gates.
 
 ## Scope and ownership
 
@@ -13,7 +15,7 @@ report is local and awaits publication through normal applicable gates.
 - Tracking issue: https://github.com/Revotech-Networks/clawsweeper/issues/1.
 - Target: `main`.
 - Starting target: `213617f23092562b3c2b7b879bd584d05aa0567b`.
-- Last fetched target: `1763e12c38889105b513554b6db1318d39ec954f`.
+- Last fetched target: `df1a924d794d42995a9a7872e1ab3ef9d3f137c1`.
 - Start date: 2026-10-29 UTC.
 - Accountable repository thread: `mcp:79b391bb-735c-4f22-b5c4-de62b5253e89`.
 - Portfolio coordinator: `d4ba2482-746c-4bf0-a13d-667f3134c71f`.
@@ -92,7 +94,8 @@ No deployment workflow was dispatched.
 | Documentation, prompts, schemas and tests                 | Included with owning implementation slices                                                                                              | Resolve material contradictions and record rejections                   |
 | Live provider and production journeys                     | Not executed                                                                                                                            | Authorized non-production provider environment required                 |
 
-Each worker has read-only ownership. The root owns candidate admission,
+Discovery workers have read-only ownership; implementation workers have bounded
+source/test ownership in isolated checkouts. The root owns candidate admission,
 deduplication, issue publication, Git, report edits, reviews, integration, and
 merges. No worker may run live automation or claim acceptance.
 
@@ -126,9 +129,14 @@ No settings other than enabling the repository's Issues feature were changed.
 
 `pages.yml` deploys on main changes to `docs/**`, its workflow, or the docs build
 script. `dashboard.yml` deploys on main changes to dashboard code, package files,
-its workflows, and selected dashboard scripts. These paths need an explicit
-delivery resolution before a push, PR, or merge could trigger deployment.
-Ordinary source, test, and top-level report changes do not match those filters.
+its workflows, and selected dashboard scripts. Chris approved upstream-only
+conditions on both entire deploy jobs. The exact two-line change is open in
+https://github.com/Revotech-Networks/clawsweeper/pull/17 at
+`16fad4abcfdf3786b95359cc23e5eff94c6ba607`; it is not yet merged or active on main.
+Other publication workflows and already-running jobs are outside this guard.
+The prepublication inventory had no in-flight runs. Nonpublishing docs generation
+passed for 22 pages; existing CI retains dashboard compilation and tests.
+Ordinary source, test, and top-level report changes do not match those deploy filters.
 
 Issue and PR events also trigger the GitHub activity workflow. Its hook requires
 a URL, token, and Discord target; all are absent in the inspected repository and
@@ -309,3 +317,36 @@ open and uncounted. Private findings remain in private tracking; their disclosur
 and the Pages/dashboard delivery decisions remain separate and pending.
 Unadmitted candidates and incomplete coverage remain root-owned; no audit
 exhaustion is claimed.
+
+## Current approved source delivery
+
+The following source candidates are public after separate authenticated owner
+visibility decisions. Their private tracking and reproductions remain private.
+PR18 is merged and target-verified; PR16 remains open. Full-lifecycle acceptance
+awaits the remaining report gate.
+
+- https://github.com/Revotech-Networks/clawsweeper/pull/16 — exact head
+  `840c4ce88690788fcc127073dc647237238f4f70`; approved source and wording unchanged.
+  Local full check passed 862 combined tests. Hosted Code/Security review completed
+  with no posted finding; the initial CI observation had no matching PR runs.
+- https://github.com/Revotech-Networks/clawsweeper/pull/18 — exact head
+  `3714cf63ee2b1bcbad4221499a8062a4a79374ba`; approved source and wording unchanged.
+  Local full check passed 927 combined tests and focused tests passed 73/73.
+  Ordinary scope readiness passed with a recorded current root disposition,
+  preserving the measured 558-line footprint and original correction history.
+  Hosted Code/Security review and genuine PR-associated CI `40898512824` and
+  CodeQL `40898512806` passed on the exact head. The normal squash merge is
+  `df1a924d794d42995a9a7872e1ab3ef9d3f137c1`; its fetched tree is identical to the
+  reviewed candidate. Fresh repair compilation and all 73 focused regressions
+  pass on that merged source, with zero failures, cancellations or timeouts.
+  Private tracking is closed as remediated and remains unpublished. The unrelated
+  notification job was cancelled before any steps because a newer activity request
+  superseded it; GitHub's annotation confirms the repository concurrency group.
+
+The noncounting guard PR17 has genuine `pull_request` runs bound to its exact
+head and PR number: CI `40897169396` and CodeQL `40897169703`. CodeQL passed;
+CI was running at the recorded provenance readback. Code/Security review completed
+with no posted finding. These are prospective receipts, not replacements or
+relabeled versions of the historical manual runs. Full-lifecycle counts remain zero.
+Normal gates, protected merge, fetched-target proof and report publication remain
+required. PR15's existing event-delivery hold remains unchanged.
