@@ -7653,20 +7653,6 @@ function duplicateCanonicalTexts(options: {
   ];
 }
 
-function duplicateCanonicalLinkTexts(options: {
-  reason: CloseReason;
-  bestSolutionLine: string;
-  evidence: Evidence[];
-}): string[] {
-  if (options.reason !== "duplicate_or_superseded") return [];
-  return [
-    options.bestSolutionLine,
-    ...options.evidence
-      .filter((entry) => /\b(?:canonical|duplicate|superseded|implementation)\b/i.test(entry.label))
-      .map((entry) => sentence(entry.detail)),
-  ];
-}
-
 function duplicateCanonicalLinks(options: {
   reason: CloseReason;
   bestSolutionLine: string;
@@ -7676,7 +7662,7 @@ function duplicateCanonicalLinks(options: {
   const seen = new Set<string>();
   const links: string[] = [];
   const currentItemUrl = itemPublicUrl(options.currentItem);
-  for (const text of duplicateCanonicalLinkTexts(options)) {
+  for (const text of duplicateCanonicalTexts(options)) {
     for (const link of issueOrPullReferenceUrls(text)) {
       if (link === currentItemUrl) continue;
       if (seen.has(link)) continue;
