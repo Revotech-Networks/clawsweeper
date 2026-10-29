@@ -21,6 +21,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.repository == 'openclaw/clawsweeper'
     name: Deploy docs
     runs-on: ubuntu-latest
     timeout-minutes: 10

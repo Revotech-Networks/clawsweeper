@@ -22,6 +22,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.repository == 'openclaw/clawsweeper'
     name: Deploy dashboard Worker
     runs-on: ubuntu-latest
     env:
