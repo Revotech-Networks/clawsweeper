@@ -1,8 +1,13 @@
 # ClawSweeper audit and hardening report
 
-Status: in progress. Three P1 repairs are merged and verified. Two have completed
-report publication; hydration completes that step when this update merges.
-Coverage is partial.
+Status: in progress. Source delivery: **4 P1 repairs and 1 Ponytail repair are
+MERGED + TARGET-VERIFIED**. Full-lifecycle acceptance: **0 P1 and 0 Ponytail**.
+The historical 3 P1 repairs and 1 Ponytail repair remain withheld because their
+mandatory exact-head PR-associated CI/CodeQL receipts are absent. The newly
+merged gate-restoration repair has those receipts and fetched-target proof;
+its final acceptance awaits publication of this updated report. Prior historical
+completion claims remain superseded. Coverage remains partial. This report is
+local and awaits publication through normal applicable gates.
 
 ## Scope and ownership
 
@@ -10,7 +15,7 @@ Coverage is partial.
 - Tracking issue: https://github.com/Revotech-Networks/clawsweeper/issues/1.
 - Target: `main`.
 - Starting target: `213617f23092562b3c2b7b879bd584d05aa0567b`.
-- Last verified target: `c150e001ed26d6f8e07928a553613c7932bed000`.
+- Last fetched target: `df1a924d794d42995a9a7872e1ab3ef9d3f137c1`.
 - Start date: 2026-10-29 UTC.
 - Accountable repository thread: `mcp:79b391bb-735c-4f22-b5c4-de62b5253e89`.
 - Portfolio coordinator: `d4ba2482-746c-4bf0-a13d-667f3134c71f`.
@@ -89,7 +94,8 @@ No deployment workflow was dispatched.
 | Documentation, prompts, schemas and tests                 | Included with owning implementation slices                                                                                              | Resolve material contradictions and record rejections                   |
 | Live provider and production journeys                     | Not executed                                                                                                                            | Authorized non-production provider environment required                 |
 
-Each worker has read-only ownership. The root owns candidate admission,
+Discovery workers have read-only ownership; implementation workers have bounded
+source/test ownership in isolated checkouts. The root owns candidate admission,
 deduplication, issue publication, Git, report edits, reviews, integration, and
 merges. No worker may run live automation or claim acceptance.
 
@@ -123,9 +129,14 @@ No settings other than enabling the repository's Issues feature were changed.
 
 `pages.yml` deploys on main changes to `docs/**`, its workflow, or the docs build
 script. `dashboard.yml` deploys on main changes to dashboard code, package files,
-its workflows, and selected dashboard scripts. These paths need an explicit
-delivery resolution before a push, PR, or merge could trigger deployment.
-Ordinary source, test, and top-level report changes do not match those filters.
+its workflows, and selected dashboard scripts. Chris approved upstream-only
+conditions on both entire deploy jobs. The exact two-line change is open in
+https://github.com/Revotech-Networks/clawsweeper/pull/17 at
+`16fad4abcfdf3786b95359cc23e5eff94c6ba607`; it is not yet merged or active on main.
+Other publication workflows and already-running jobs are outside this guard.
+The prepublication inventory had no in-flight runs. Nonpublishing docs generation
+passed for 22 pages; existing CI retains dashboard compilation and tests.
+Ordinary source, test, and top-level report changes do not match those deploy filters.
 
 Issue and PR events also trigger the GitHub activity workflow. Its hook requires
 a URL, token, and Discord target; all are absent in the inspected repository and
@@ -239,20 +250,103 @@ Large local suites have used the portfolio's finite capacity coordination;
 candidate full checks ran in hosted CI. Focused compilation and CLI proofs were
 bounded local work. No recurring resource watcher or competing updater was added.
 
-Qualifying repairs merged, verified and closed: **3 P1**. Issues 6 and 10 completed
-their report step in https://github.com/Revotech-Networks/clawsweeper/pull/12 at
-`9fe84bb477d48f22b132e71b63b2d1c7e1db2a5a`; the fetched tree matched the tested
-head, and combined-source CI passed 852 tests. Hydration's final lifecycle step is
-this report update. Completed qualifying lifecycles are **2**, becoming **3** when
-this update merges. P0, F0 and F1 completed counts are **0**.
-Completed ponytail repairs: **1**. Merged repair/prerequisite PRs: **5**, comprising
-three P1 repairs, the non-counting baseline prerequisite and the ponytail repair.
-Closed non-counting baseline issues: **1**. Report-only PRs do not count as findings.
+## CI provenance correction and acceptance
+
+The portfolio disposition on 2026-10-29 preserves **3 P1 repairs and 1 Ponytail
+repair as MERGED + TARGET-VERIFIED**, but withholds all four from full-lifecycle
+completion totals. Accepted completed lifecycles are **0 P1 and 0 Ponytail**;
+P0, F0 and F1 remain **0**. Merges, issue closures, source reviews, fetched-target
+proofs and hydration correction 1 remain valid historical evidence.
+
+The previous report statement, "Completed qualifying lifecycles are 2, becoming
+3 when this update merges," and its "Completed ponytail repairs: 1" claim are
+explicitly **superseded**. The tracker subsequently claimed three completed P1
+lifecycles and one completed Ponytail repair; that claim is also superseded.
+Publication of the earlier reports did not supply the missing CI association.
+
+One bounded reconciliation read complete paginated live Actions inventories at
+seven historical final heads and their merge commits. Applicable workflows are
+**CI `287502882`** and **CodeQL `287502883`**. Both declare `pull_request` triggers
+at every inspected head. The required exact-head PR-event receipts were absent,
+and no applicable hosted-CI exception is documented. Docs-only source-review
+classification does not waive this CI requirement.
+
+| PR                                                       | Role                       | CI run        | CodeQL run    | Returned event evidence                                 |
+| -------------------------------------------------------- | -------------------------- | ------------- | ------------- | ------------------------------------------------------- |
+| https://github.com/Revotech-Networks/clawsweeper/pull/7  | P1 hydration, correction 1 | `40832904622` | `40832907727` | Both successful `workflow_dispatch`; no matching PR run |
+| https://github.com/Revotech-Networks/clawsweeper/pull/8  | Ponytail limits reuse      | `40828008840` | `40828011678` | Both successful `workflow_dispatch`; no matching PR run |
+| https://github.com/Revotech-Networks/clawsweeper/pull/9  | P1 fresh review output     | `40828017798` | `40828020362` | Both successful `workflow_dispatch`; no matching PR run |
+| https://github.com/Revotech-Networks/clawsweeper/pull/11 | P1 intake GET              | `40831230107` | `40831233304` | Both successful `workflow_dispatch`; no matching PR run |
+| https://github.com/Revotech-Networks/clawsweeper/pull/3  | Non-counting baseline      | `40825105092` | `40825107883` | Both successful `workflow_dispatch`; no matching PR run |
+| https://github.com/Revotech-Networks/clawsweeper/pull/12 | Non-counting report        | `40833310467` | `40833313214` | Both successful `workflow_dispatch`; no matching PR run |
+| https://github.com/Revotech-Networks/clawsweeper/pull/13 | Non-counting report        | None returned | None returned | No exact-head runs returned                             |
+
+These **12 successful manual runs and 18 successful jobs** remain actual execution
+evidence. Their `pull_requests` arrays are empty; none is relabeled as PR-event
+evidence. Deleted or inaccessible historical evidence cannot be reconstructed.
+The exact final heads, merges, source reviews and target proofs above remain
+unchanged. The first report merge is `9fe84bb477d48f22b132e71b63b2d1c7e1db2a5a`,
+with fetched-tree equality and 852 combined-source tests recorded. The second
+report merge is `1763e12c38889105b513554b6db1318d39ec954f`. Report-only PRs and the
+baseline prerequisite remain non-counting.
+
+No historical repair is being reopened, repushed or rerun for this correction.
+Normal PR-associated validation on a legitimate current candidate can establish
+prospective integrated-state proof; it cannot retroactively change old events
+or automatically restore historical completion counts. Once normal event
+delivery is established, the root will submit a concrete corrective-acceptance
+proposal to the portfolio owner. This local report correction will be published
+only through normal applicable gates.
+
+The accepted repository-binding finding
+https://github.com/Revotech-Networks/clawsweeper/issues/14 is in
+https://github.com/Revotech-Networks/clawsweeper/pull/15 at
+`345f80ac9a506521f46f739475104673f22a873f`. Its full local check passed 417 unit,
+461 repair and 878 combined coverage tests. Hosted Code/Security review passed;
+manual CI run `40845731628` and CodeQL run `40845735014` also succeeded. Matching
+PR-event runs remain absent, so merge and fetched-target acceptance are held.
+Two unchanged-head close/reopen attempts produced no matching runs. No third
+unchanged retrigger, settings change or CI waiver is authorized.
 
 Open candidates, rejected leads, exact review heads, merged commits, and
 post-merge verification will be recorded here as evidence becomes available.
 The sprint is not exhausted, and the tracking issue remains open. Paginated live
 readback and individual closeout state show issues 2, 4, 5, 6 and 10 closed after
-verification, and PRs 3, 7, 8, 9, 11 and 12 merged. The private finding remains
-open in private tracking. Unadmitted candidates and incomplete coverage remain
-root-owned; no audit exhaustion is claimed.
+verification, and PRs 3, 7, 8, 9, 11, 12 and 13 merged. Issue 14 and PR 15 remain
+open and uncounted. Private findings remain in private tracking; their disclosure
+and the Pages/dashboard delivery decisions remain separate and pending.
+Unadmitted candidates and incomplete coverage remain root-owned; no audit
+exhaustion is claimed.
+
+## Current approved source delivery
+
+The following source candidates are public after separate authenticated owner
+visibility decisions. Their private tracking and reproductions remain private.
+PR18 is merged and target-verified; PR16 remains open. Full-lifecycle acceptance
+awaits the remaining report gate.
+
+- https://github.com/Revotech-Networks/clawsweeper/pull/16 — exact head
+  `840c4ce88690788fcc127073dc647237238f4f70`; approved source and wording unchanged.
+  Local full check passed 862 combined tests. Hosted Code/Security review completed
+  with no posted finding; the initial CI observation had no matching PR runs.
+- https://github.com/Revotech-Networks/clawsweeper/pull/18 — exact head
+  `3714cf63ee2b1bcbad4221499a8062a4a79374ba`; approved source and wording unchanged.
+  Local full check passed 927 combined tests and focused tests passed 73/73.
+  Ordinary scope readiness passed with a recorded current root disposition,
+  preserving the measured 558-line footprint and original correction history.
+  Hosted Code/Security review and genuine PR-associated CI `40898512824` and
+  CodeQL `40898512806` passed on the exact head. The normal squash merge is
+  `df1a924d794d42995a9a7872e1ab3ef9d3f137c1`; its fetched tree is identical to the
+  reviewed candidate. Fresh repair compilation and all 73 focused regressions
+  pass on that merged source, with zero failures, cancellations or timeouts.
+  Private tracking is closed as remediated and remains unpublished. The unrelated
+  notification job was cancelled before any steps because a newer activity request
+  superseded it; GitHub's annotation confirms the repository concurrency group.
+
+The noncounting guard PR17 has genuine `pull_request` runs bound to its exact
+head and PR number: CI `40897169396` and CodeQL `40897169703`. CodeQL passed;
+CI was running at the recorded provenance readback. Code/Security review completed
+with no posted finding. These are prospective receipts, not replacements or
+relabeled versions of the historical manual runs. Full-lifecycle counts remain zero.
+Normal gates, protected merge, fetched-target proof and report publication remain
+required. PR15's existing event-delivery hold remains unchanged.
