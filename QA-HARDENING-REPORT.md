@@ -1,10 +1,8 @@
 # ClawSweeper audit and hardening report
 
 Status: in progress. Source delivery: **6 P1 repairs and 3 Ponytail repairs are
-MERGED + TARGET-VERIFIED**. Accepted lifecycles before this report's delivery are
-**3 P1 and 1 Ponytail**. After this report merges and its fetched target is
-verified, the accepted total becomes **3 P1 and 2 Ponytail**. The accepted P1
-repairs remain:
+MERGED + TARGET-VERIFIED**. Accepted completed lifecycles are **3 P1 and
+2 Ponytail**. The accepted P1 repairs remain:
 
 - https://github.com/Revotech-Networks/clawsweeper/pull/18.
 - https://github.com/Revotech-Networks/clawsweeper/pull/16.
@@ -13,8 +11,7 @@ repairs remain:
 The separate Ponytail simplifications are:
 
 - https://github.com/Revotech-Networks/clawsweeper/pull/22.
-- https://github.com/Revotech-Networks/clawsweeper/pull/26, pending this report's
-  delivery and fetched-target verification.
+- https://github.com/Revotech-Networks/clawsweeper/pull/26.
 
 P0, F0, and F1 remain zero.
 
@@ -29,11 +26,11 @@ those counts. Coverage remains partial; the sprint is not exhausted.
 - Tracking issue: https://github.com/Revotech-Networks/clawsweeper/issues/1.
 - Target: `main`.
 - Starting target: `213617f23092562b3c2b7b879bd584d05aa0567b`.
-- Last fetched product target: `7fa2e7df9757ebe63f04c6a73474425d559be47b`.
+- Last fetched target: `e3e53ccc93fe67e34eab7e855697e1261a3bd05f`.
 - Start date: 2026-10-29 UTC.
 - Accountable repository thread: `mcp:79b391bb-735c-4f22-b5c4-de62b5253e89`.
 - Portfolio coordinator: `d4ba2482-746c-4bf0-a13d-667f3134c71f`.
-- Coordinator branch: `audit/ponytail-20261029-c6fe948e`.
+- Coordinator branch: `audit/report-workflow-coverage-20261029`.
 
 The audit includes tracked first-party source, tests, manifests, configuration,
 workflows, prompts, schemas, and durable documentation at the starting revision.
@@ -103,9 +100,9 @@ No deployment workflow was dispatched.
 | Area                                                      | Current evidence                                                                                                                        | Remaining work                                                          |
 | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | Core sweeper, CLI, profiles, review and apply guards      | Full main-file source and named support modules inspected; targeted tests and baseline assessed                                        | Reproduce retained safety candidates and assess remaining tests/docs             |
-| Repair, automerge, persistence, interruption and recovery | Full executor, apply, router and notification source reads added to prior intake, import, planner and result-review coverage | Runtime proofs and remaining helper, publisher and workflow coverage |
+| Repair, automerge, persistence, interruption and recovery | Full executor, apply, router, notifier, publisher and assigned lifecycle/mechanical helper source reads | Runtime proofs and remaining helper, test and documentation coverage |
 | Dashboard, webhook, operator UI and API                   | Dashboard/webhook source discovery complete; no admitted P1                                                                             | Policy-drift proof, browser/accessibility and bounded-load coverage     |
-| Workflows, actions, configuration and scripts             | Root owns inspection; remote triggers and credential names checked                                                                      | Complete source and delivery-effect assessment                          |
+| Workflows, actions, configuration and scripts             | All 23 tracked workflow files read, with selected setup actions and real CLI callers | Runtime delivery effects and unlisted actions, configuration and scripts |
 | Documentation, prompts, schemas and tests                 | Included with owning implementation slices                                                                                              | Resolve material contradictions and record rejections                   |
 | Live provider and production journeys                     | Not executed                                                                                                                            | Authorized non-production provider environment required                 |
 
@@ -131,7 +128,10 @@ job creation/intent and security-boundary modules. Both repair schemas and all
 five repair prompts were read. The continuation completed the executor,
 applicator, both comment-router files, and all five notification modules.
 Matching apply/router and notification tests were read within their declared
-packages. Unlisted helper, publisher, test and workflow files remain unassessed.
+packages. Later source-only packages completed the eight publisher modules and
+eleven lifecycle helpers; the root completed nine mechanical helpers and the
+workflow utility module. Exact ranges remain in the continuation records.
+Unlisted helpers, tests and documentation remain unassessed.
 
 Both dashboard files and their assigned tests/scripts were read, along with the
 hydrator, limits checker and setup-state action. Associated documentation was
@@ -566,9 +566,106 @@ describe the required pollution prerequisite. Repository exploitability remains
 unproved.
 
 This continuation does not exhaust the audit. Unread first-party helpers,
-publishers, scripts, workflows, configuration, tests and documentation remain
+scripts, actions, configuration, tests and documentation remain
 root-owned coverage gaps, alongside the live-provider, browser, accessibility
 and load journeys. https://github.com/Revotech-Networks/clawsweeper/pull/15 and
 https://github.com/Revotech-Networks/clawsweeper/issues/14 remain stopped under
 their existing owner and consumed recovery budget. No additional retry,
 workflow dispatch, settings change, deployment or private disclosure is implied.
+
+## Report delivery and remaining workflow assessment
+
+https://github.com/Revotech-Networks/clawsweeper/pull/27 merged from
+`5b96541b5190456e708b3763eb5d444970e15b21` to
+`e3e53ccc93fe67e34eab7e855697e1261a3bd05f`. Genuine PR-associated CI
+`40941522645` and CodeQL `40941522726` passed on that head. The report-only
+change required no new source review; all posted feedback was reconciled
+without findings. Its fetched whole tree
+`be1f64b5091ffd51bd834bdc3b632db934abdbeb` equals the verified candidate tree.
+Only this report changed, the full-URL convention and diff checks passed, and
+the watch is off. That delivery completed the documentation obligation for
+https://github.com/Revotech-Networks/clawsweeper/issues/25. Completed accepted
+totals are now 3 P1 and 2 Ponytail; this further report update adds no count.
+
+The subsequent source assessment uses that identical tree. Three more discovery
+packages completed: publishers, review workflows and lifecycle helpers. The root
+inspected their cited callers and countercontrols. A mechanical-helper child
+failed before inspection because its model was at capacity. The declared stop
+and drain policy was preserved; the root completed that failed scope directly,
+without a replacement child or model retry. This brings completed discovery
+packages in the continuation to eleven, plus the root's separate source reads.
+
+Additional full source coverage includes eight publisher modules, eleven
+lifecycle helpers, nine mechanical helpers (1,427 source lines and 740 matching
+test lines), `workflow-utils.ts` (742 lines), five thin CLI/repository helpers
+(125 lines), and the small environment, timing and JSON/domain type modules.
+The root filled the unassessed ranges of `workflow-utils.test.ts`; combined with
+the earlier same-source package, all 886 lines have been read. No test execution
+is inferred from these reads.
+
+All 23 tracked workflow definitions now have full source reads. The fourteen
+newly assessed files contain 2,221 lines: the repair worker, comment router,
+cluster intake, commit-finding intake, issue-implementation intake, self-heal,
+CI, CodeQL, dashboard CI, dashboard deployment, Pages, Crabbox hydration,
+maintainer activity report and spam-comment intake workflows. The other nine
+were covered by retained packages and root inspection. Workflow bytes are
+unchanged from the earlier assessed `083f350b` pin. This establishes source
+coverage, including trigger, token, gate and CLI wiring; it establishes no live
+dispatch, installation, publication, deployment or provider outcome.
+
+The finalizer's finite open-PR scan, batch dispatch ledger persistence and job
+cleanup during active runs remain unadmitted leads. Their material impact was
+not established. Broken optional dashboard report links, commit-review capacity
+underaccounting and unstaged-path fallback parsing remain lower-priority task
+notes. No issue, repair or severity increase was justified for those notes.
+
+## Reviewed-issue dispatch permission finding
+
+P1: https://github.com/Revotech-Networks/clawsweeper/issues/28 records a distinct
+failure after successful issue preparation. The reviewed-issue workflow selects
+an App token explicitly granted Actions read for its `gh workflow run` call.
+That call requires Actions write under the
+[GitHub workflow-dispatch contract](https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event).
+Once eligibility, successful job publication, active-worker and capacity gates
+permit dispatch, this credential cannot authorize the automatic worker launch.
+The strict-bug and vision-fit intake paths share that dispatch step. Current
+production enablement, a live incident and an actual HTTP failure are not
+claimed.
+
+The root deduplicated all 27 current issue/PR records and the existing private
+finding identities before recording the new lead. An independent source-only
+check confirmed the workflow, dispatcher, repository resolution, credential
+selection and caller controls. The source and provider contract prove the
+permission mismatch; no live or mocked dispatch ran. The earlier GET-search
+repair in https://github.com/Revotech-Networks/clawsweeper/issues/10 and
+https://github.com/Revotech-Networks/clawsweeper/pull/11 addressed preparation,
+with its own accepted job/audit/output criteria. This later dispatch defect
+does not reset that issue's identity, disposition or correction history.
+
+An unapplied two-line proposal selects the existing current-repository
+`GITHUB_TOKEN` for dispatch and grants that token Actions write. The owner-scoped
+App token would keep Actions read. GitHub documents `workflow_dispatch` as an
+exception that can create workflow runs from `GITHUB_TOKEN` in its
+[workflow-trigger guidance](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow#triggering-a-workflow-from-a-workflow).
+The proposal still expands token authority. The existing sprint grant excludes
+permission changes, so implementation awaits a separate scoped human decision
+owned by the portfolio coordinator. No product source, permission, credential,
+App installation or setting changed; no repair PR or live dispatch exists for
+this finding. The issue remains open and incomplete, with zero count credit.
+
+The separately tracked private command-routing repair is frozen and unpublished
+pending its own source/test visibility decision. The coordinator's read-only
+prepublication consultation completed without a blocking finding; it provides
+no formal PR review or hosted CI credit. These two decisions are separate, and
+neither reuses an earlier candidate's approval. Private reproduction, impact and
+advisory details remain private.
+
+The last complete live readback at 20:06 UTC found 17 of 18 linked sprint pull
+requests merged and only https://github.com/Revotech-Networks/clawsweeper/pull/15
+open. https://github.com/Revotech-Networks/clawsweeper/issues/28 was subsequently
+opened and the tracker updated. The stopped pull request and
+https://github.com/Revotech-Networks/clawsweeper/issues/14 retain their owner,
+spent recovery budget and STOP. No new recovery pair, permission waiver, manual
+workflow dispatch, deployment or large local job follows from this report.
+Remaining source, live-provider, browser/accessibility, load and final integration
+obligations prevent an exhaustion or completed-sprint verdict.
