@@ -1,44 +1,7 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
-
-type WorkerConfig = {
-  workers: {
-    max: number;
-    reserve_for_interactive: number;
-    expansion_reserve: number;
-    minimum_background: number;
-  };
-  lanes: {
-    repair: {
-      cluster_max_live_runs: number;
-    };
-  };
-};
-
-type AutomationLimits = {
-  review_shards: {
-    normal_default: number;
-    normal_active_floor: number;
-    hot_intake_default: number;
-    exact_item_default: number;
-    hard_cap: number;
-  };
-  commit_review: {
-    page_size_default: number;
-    page_size_hard_cap: number;
-  };
-  repair_live_runs: {
-    default: number;
-    hard_cap: number;
-    automerge_default: number;
-    issue_implementation_default: number;
-    cluster_default: number;
-  };
-  issue_implementation: {
-    dispatches_per_sweep_default: number;
-  };
-};
+import { deriveAutomationLimits, type WorkerConfig } from "../src/limits.ts";
 
 const root = process.cwd();
 const config = JSON.parse(
@@ -148,38 +111,6 @@ function flattenLimits(value: unknown, prefix = ""): Record<string, number> {
     }
   }
   return out;
-}
-
-function deriveAutomationLimits(workerConfig: WorkerConfig): AutomationLimits {
-  const max = workerConfig.workers.max;
-  const clusterRepairMax = Math.min(workerConfig.lanes.repair.cluster_max_live_runs, max);
-  return {
-    review_shards: {
-      normal_default: percent(max, 70),
-      normal_active_floor: percent(max, 30),
-      hot_intake_default: percent(max, 35),
-      exact_item_default: 1,
-      hard_cap: max,
-    },
-    commit_review: {
-      page_size_default: percent(max, 5),
-      page_size_hard_cap: max,
-    },
-    repair_live_runs: {
-      default: percent(max, 40),
-      hard_cap: max,
-      automerge_default: percent(max, 40),
-      issue_implementation_default: percent(max, 40),
-      cluster_default: clusterRepairMax,
-    },
-    issue_implementation: {
-      dispatches_per_sweep_default: percent(max, 4),
-    },
-  };
-}
-
-function percent(max: number, value: number): number {
-  return Math.max(1, Math.floor((max * value) / 100));
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

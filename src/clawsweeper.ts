@@ -6177,6 +6177,7 @@ function runCodex(options: {
     'approval_policy="never"',
   ];
   if (options.serviceTier) codexConfig.splice(1, 0, `service_tier="${options.serviceTier}"`);
+  if (existsSync(outputPath)) unlinkSync(outputPath);
   const result = spawnSync(
     "codex",
     [
