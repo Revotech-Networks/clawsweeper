@@ -1,5 +1,13 @@
 #!/usr/bin/env node
-import { cpSync, existsSync, mkdirSync, realpathSync, rmSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  readlinkSync,
+  realpathSync,
+  rmSync,
+} from "node:fs";
 import path from "node:path";
 
 const GENERATED_PATHS = [
@@ -32,15 +40,21 @@ if (!GENERATED_PATHS.some((relativePath) => existsSync(path.join(stateRoot, rela
   );
 }
 
-const resolvedStateRoot = realpathSync(stateRoot);
-const sources = GENERATED_PATHS.map((relativePath) =>
-  resolveExistingPath(path.join(stateRoot, relativePath)),
+const stateRoots = sourceAccessPaths(stateRoot);
+const sources = GENERATED_PATHS.flatMap((relativePath) =>
+  sourceAccessPaths(path.join(stateRoot, relativePath)),
 );
 for (const relativePath of GENERATED_PATHS) {
-  const destination = resolveExistingPath(path.join(worktreeRoot, relativePath));
+  const destinationPath = path.join(worktreeRoot, relativePath);
+  const destinations = [destinationPath, resolveExistingPath(destinationPath)];
   if (
-    containsPath(destination, resolvedStateRoot) ||
-    sources.some((source) => containsPath(source, destination) || containsPath(destination, source))
+    destinations.some(
+      (destination) =>
+        stateRoots.some((source) => containsPath(destination, source)) ||
+        sources.some(
+          (source) => containsPath(source, destination) || containsPath(destination, source),
+        ),
+    )
   ) {
     throw new Error(
       `Hydration paths overlap: ${path.join(worktreeRoot, relativePath)} and ${stateRoot}`,
@@ -58,6 +72,23 @@ for (const relativePath of GENERATED_PATHS) {
 }
 
 console.log(JSON.stringify({ hydrated: GENERATED_PATHS, source: stateRoot, target: worktreeRoot }));
+
+function sourceAccessPaths(filePath: string, seen = new Set<string>()): string[] {
+  if (seen.has(filePath)) return [];
+  seen.add(filePath);
+  const paths = [filePath, resolveExistingPath(filePath)];
+  // Keep symlink traversal paths: deleting an intermediate link also destroys access.
+  for (let entry = filePath; entry !== path.dirname(entry); entry = path.dirname(entry)) {
+    if (!lstatSync(entry, { throwIfNoEntry: false })?.isSymbolicLink()) continue;
+    const linkedPath = path.resolve(
+      path.dirname(entry),
+      readlinkSync(entry),
+      path.relative(entry, filePath),
+    );
+    paths.push(...sourceAccessPaths(linkedPath, seen));
+  }
+  return paths;
+}
 
 function resolveExistingPath(filePath: string): string {
   if (existsSync(filePath)) return realpathSync(filePath);
