@@ -1,8 +1,8 @@
 # ClawSweeper audit and hardening report
 
-Status: in progress. Source delivery: **6 P1 repairs and 3 Ponytail repairs are
-MERGED + TARGET-VERIFIED**. Accepted completed lifecycles are **3 P1 and
-2 Ponytail**. The accepted P1 repairs remain:
+Status: in progress. Source delivery: **6 P1 repairs and 4 Ponytail repairs are
+MERGED + TARGET-VERIFIED**. Accepted completed lifecycles recorded by this report
+are **3 P1 and 3 Ponytail**. The accepted P1 repairs remain:
 
 - https://github.com/Revotech-Networks/clawsweeper/pull/18.
 - https://github.com/Revotech-Networks/clawsweeper/pull/16.
@@ -12,6 +12,7 @@ The separate Ponytail simplifications are:
 
 - https://github.com/Revotech-Networks/clawsweeper/pull/22.
 - https://github.com/Revotech-Networks/clawsweeper/pull/26.
+- https://github.com/Revotech-Networks/clawsweeper/pull/31.
 
 P0, F0, and F1 remain zero.
 
@@ -26,11 +27,11 @@ those counts. Coverage remains partial; the sprint is not exhausted.
 - Tracking issue: https://github.com/Revotech-Networks/clawsweeper/issues/1.
 - Target: `main`.
 - Starting target: `213617f23092562b3c2b7b879bd584d05aa0567b`.
-- Last fetched target: `e3e53ccc93fe67e34eab7e855697e1261a3bd05f`.
+- Last fetched target: `98d1f545b2a97b34acb3c0107504867694355702`.
 - Start date: 2026-10-29 UTC.
 - Accountable repository thread: `mcp:79b391bb-735c-4f22-b5c4-de62b5253e89`.
 - Portfolio coordinator: `d4ba2482-746c-4bf0-a13d-667f3134c71f`.
-- Coordinator branch: `audit/report-workflow-coverage-20261029`.
+- Coordinator branch: `audit/report-unused-core-scheduler-20261029`.
 
 The audit includes tracked first-party source, tests, manifests, configuration,
 workflows, prompts, schemas, and durable documentation at the starting revision.
@@ -102,7 +103,7 @@ No deployment workflow was dispatched.
 | Core sweeper, CLI, profiles, review and apply guards      | Full main-file source and named support modules inspected; targeted tests and baseline assessed                                        | Reproduce retained safety candidates and assess remaining tests/docs             |
 | Repair, automerge, persistence, interruption and recovery | Full executor, apply, router, notifier, publisher and assigned lifecycle/mechanical helper source reads | Runtime proofs and remaining helper, test and documentation coverage |
 | Dashboard, webhook, operator UI and API                   | Dashboard/webhook source discovery complete; no admitted P1                                                                             | Policy-drift proof, browser/accessibility and bounded-load coverage     |
-| Workflows, actions, configuration and scripts             | All 23 tracked workflow files read, with selected setup actions and real CLI callers | Runtime delivery effects and unlisted actions, configuration and scripts |
+| Workflows, actions, configuration and scripts             | All 23 tracked workflows and all nine first-party scripts read, with selected actions/configuration | Runtime delivery effects and unlisted actions/configuration |
 | Documentation, prompts, schemas and tests                 | Included with owning implementation slices                                                                                              | Resolve material contradictions and record rejections                   |
 | Live provider and production journeys                     | Not executed                                                                                                                            | Authorized non-production provider environment required                 |
 
@@ -585,7 +586,7 @@ without findings. Its fetched whole tree
 Only this report changed, the full-URL convention and diff checks passed, and
 the watch is off. That delivery completed the documentation obligation for
 https://github.com/Revotech-Networks/clawsweeper/issues/25. Completed accepted
-totals are now 3 P1 and 2 Ponytail; this further report update adds no count.
+totals at that checkpoint were 3 P1 and 2 Ponytail; that report update added no count.
 
 The subsequent source assessment uses that identical tree. Three more discovery
 packages completed: publishers, review workflows and lifecycle helpers. The root
@@ -622,9 +623,13 @@ notes. No issue, repair or severity increase was justified for those notes.
 ## Reviewed-issue dispatch permission finding
 
 P1: https://github.com/Revotech-Networks/clawsweeper/issues/28 records a distinct
-failure after successful issue preparation. The reviewed-issue workflow selects
-an App token explicitly granted Actions read for its `gh workflow run` call.
-That call requires Actions write under the
+failure after successful issue preparation. There are two separate workflow
+launches. The sweep uses its existing Actions-write `GITHUB_TOKEN` to launch
+`repair-issue-implementation-intake.yml`. The launched intake then selects its
+own App token, explicitly granted Actions read, to launch
+`repair-cluster-worker.yml` through `repair:dispatch`. The first launch
+does not supply the second launch's `GH_TOKEN`. The worker launch requires
+Actions write under the
 [GitHub workflow-dispatch contract](https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event).
 Once eligibility, successful job publication, active-worker and capacity gates
 permit dispatch, this credential cannot authorize the automatic worker launch.
@@ -660,12 +665,81 @@ no formal PR review or hosted CI credit. These two decisions are separate, and
 neither reuses an earlier candidate's approval. Private reproduction, impact and
 advisory details remain private.
 
-The last complete live readback at 20:06 UTC found 17 of 18 linked sprint pull
-requests merged and only https://github.com/Revotech-Networks/clawsweeper/pull/15
-open. https://github.com/Revotech-Networks/clawsweeper/issues/28 was subsequently
-opened and the tracker updated. The stopped pull request and
-https://github.com/Revotech-Networks/clawsweeper/issues/14 retain their owner,
-spent recovery budget and STOP. No new recovery pair, permission waiver, manual
-workflow dispatch, deployment or large local job follows from this report.
-Remaining source, live-provider, browser/accessibility, load and final integration
-obligations prevent an exhaustion or completed-sprint verdict.
+The complete paginated open-issue and open-PR readback at 21:34 UTC found the
+tracker, https://github.com/Revotech-Networks/clawsweeper/issues/14,
+https://github.com/Revotech-Networks/clawsweeper/issues/28 and
+https://github.com/Revotech-Networks/clawsweeper/pull/15 open. Individual current
+readback of all 20 linked sprint pull requests found 19 merged, one open,
+zero closed-unmerged and zero unavailable. The only open pull request remains
+stopped under its existing owner and spent recovery budget. The tracker retains
+overall acceptance; the permission finding awaits the coordinator-owned human
+decision. No other concurrent public work was found in that complete inventory.
+No new recovery pair, permission waiver, manual workflow dispatch, deployment
+or large local job follows from this report. Remaining source, live-provider,
+browser/accessibility, load and final integration obligations prevent an
+exhaustion or completed-sprint verdict.
+
+## Unused core scheduler removal and report delivery
+
+https://github.com/Revotech-Networks/clawsweeper/pull/29 merged the prior coverage
+report from `4829e72358ab312d83c5c8fecd8ae45bb24bb266` to
+`09d6d3832425cde6f110621beebaa918be139dd0`. Genuine PR-associated CI
+`40950448259` and CodeQL `40950448277` passed. The fetched whole tree
+`ac4b44c5486328d65fdbdfd9fefc6a28a59e24c1` equals that report candidate.
+The posted dispatch-permission objection was reconciled against the two
+separate launches described above; the thread is resolved. The report-only
+change and its feedback disposition added no finding or completion count.
+
+https://github.com/Revotech-Networks/clawsweeper/issues/30 records a Ponytail
+`delete` finding. The private package has no library entrypoint, and repository
+callers use the scheduler in `src/repair/limits.ts`. Core consumers use only
+configuration constants, the canonical derivation function and its config type.
+The unused core `workerLimit`, its `WorkerLane` type and its private-only clamp
+helper therefore had no supported caller. The two limits modules were not
+merged: their assist-lane and validation requirements differ.
+
+The cooperative ledger returned POSSIBLE because the core path also appeared
+in https://github.com/Revotech-Networks/clawsweeper/issues/5 and
+https://github.com/Revotech-Networks/clawsweeper/pull/8. Those criteria concern
+checker-local derivation duplication. Root compared them before admitting this
+separate unused scheduler deletion. The earlier canonical derivation, checker
+validation and historical withholding remain intact. This adds no excellence
+severity and does not count the smaller redundant-floor observation separately.
+
+https://github.com/Revotech-Networks/clawsweeper/pull/31 deleted 69 lines from
+`src/limits.ts`, with no additions. Exact deletion comparison established that
+every retained core byte and the active repair scheduler remain unchanged.
+The existing limits checker and a fresh core build passed on Node 26.12.1.
+No new mirrored test or broad local suite was needed for uncalled code.
+
+The final head was `c399d1990e3c50967a82cb82a7705acf6a03d305`. Automatic Code
+Review completed at 21:27:13 UTC and Security Review at 21:27:51 UTC. Full
+conversation, review and inline-thread readbacks before merge and after landing
+contained no posted findings. Genuine `pull_request` CI `40957828043` and
+CodeQL `40957828212` passed on that head; their actual association with the
+pull request was retained before merge. CI executed the full `pnpm run check`.
+The optional activity notification was cancelled with zero steps because a
+higher-priority request occupied its concurrency group. It was not called
+successful, retriggered or used as a gate waiver.
+
+Normal expected-head squash merge produced
+`98d1f545b2a97b34acb3c0107504867694355702`. The fetched whole target tree
+`235d7c6b3cab97dfba44a595bd81bc72e9a2c6e7` equals the reviewed candidate tree.
+Fresh target checker and core build passed in 0.043 and 0.157 seconds,
+respectively, each within a 20-second bound. The proof observed a cumulative
+child peak RSS of 94,180 KiB. The target worktree is clean, the issue is closed
+and the source pull request is unwatched. Delivery of this canonical report
+completes the third accepted Ponytail lifecycle; report/admin work adds none.
+
+The root's source continuation completed the remaining three first-party
+scripts, bringing all nine to full source-read coverage: the active-surface
+checker, close-coverage smoke driver and social-card renderer were assessed
+without executing the provider/model smoke or asset generator. The root also
+read the repair limits module, all 716 lines of the decision schema through
+composed ranges, the close-coverage schema, four compiler/format configuration
+files, and the merge/low-signal instructions. These reads and caller checks
+establish no new runtime defect or provider result. The tracked Crabbox skill
+was read as audit data but its output was truncated; its coverage remains
+partial and no Crabbox procedure was applied. Unlisted actions, tests and
+durable documentation still require assessment, and all existing live-proof
+and authority gaps remain.
