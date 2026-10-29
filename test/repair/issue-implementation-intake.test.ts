@@ -1,6 +1,17 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import test from "node:test";
-import { readFileSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 
 import {
   parseReviewReport,
@@ -40,6 +51,115 @@ function report(overrides = {}) {
     .map(([key, value]) => `${key}: ${value}`)
     .join("\n");
   return `---\n${frontmatter}\n---\n\n## Repair Work Prompt\n\nFix the reproduced existing-behavior bug and add a regression test.\n`;
+}
+
+for (const candidateKind of ["strict_bug", "vision_fit"]) {
+  test(`enabled ${candidateKind} preparation preserves PR search and failure guards`, () => {
+    for (const scenario of ["eligible", "duplicate", "search-error"]) {
+      const dir = mkdtempSync(join(tmpdir(), "clawsweeper-intake-"));
+      try {
+        cpSync("dist", join(dir, "dist"), { recursive: true });
+        cpSync("config", join(dir, "config"), { recursive: true });
+        cpSync("package.json", join(dir, "package.json"));
+        const bin = join(dir, "bin");
+        mkdirSync(bin);
+        const query = 'q=repo:openclaw/openclaw is:pr is:open "123"';
+        writeFileSync(
+          join(bin, "gh"),
+          `#!${process.execPath}
+import assert from "node:assert/strict";
+const args = process.argv.slice(2);
+const endpoint = args[1];
+if (args[0] !== "api") throw new Error("unexpected command");
+if (endpoint === "search/issues") {
+  const methodIndex = args.indexOf("--method");
+  const method = methodIndex >= 0 ? args[methodIndex + 1] : args.includes("-f") ? "POST" : "GET";
+  if (method !== "GET" || ${JSON.stringify(scenario)} === "search-error") {
+    console.error("gh: Not Found (HTTP 404)");
+    process.exit(1);
+  }
+  assert.equal(args[args.indexOf("-f") + 1], ${JSON.stringify(query)});
+  assert.equal(args[args.indexOf("--jq") + 1], ".items");
+  console.log(JSON.stringify(${scenario === "duplicate" ? '[{number: 456, title: "Existing fix"}]' : "[]"}));
+} else if (endpoint === "repos/openclaw/openclaw/issues/123") {
+  console.log(JSON.stringify({state: "open", locked: false, title: "Existing bug", body: "Narrow reproduction", labels: []}));
+} else if (endpoint === "repos/openclaw/openclaw/issues/123/comments?per_page=100" || endpoint === "repos/openclaw/openclaw/pulls") {
+  console.log("[]");
+} else {
+  throw new Error("unexpected endpoint: " + endpoint);
+}
+`,
+          { mode: 0o755 },
+        );
+        const reportPath = join(dir, "report.md");
+        writeFileSync(
+          reportPath,
+          report(
+            candidateKind === "vision_fit"
+              ? {
+                  item_category: "feature",
+                  reproduction_status: "not_applicable",
+                  requires_new_feature: "true",
+                  auto_implementation_candidate: "vision_fit",
+                  vision_fit: "aligned",
+                  vision_fit_evidence: JSON.stringify(["VISION.md supports setup reliability."]),
+                  implementation_complexity: "small",
+                }
+              : {},
+          ),
+        );
+        const result = spawnSync(
+          process.execPath,
+          [
+            join(dir, "dist/repair/issue-implementation-intake.js"),
+            "prepare",
+            "--enabled",
+            "true",
+            "--target-repo",
+            "openclaw/openclaw",
+            "--item-number",
+            "123",
+            "--candidate-kind",
+            candidateKind,
+            "--report-file",
+            reportPath,
+          ],
+          {
+            cwd: dir,
+            env: { PATH: `${bin}:${dirname(process.execPath)}`, HOME: dir },
+            encoding: "utf8",
+            timeout: 10_000,
+          },
+        );
+        const jobPath = join(dir, "jobs/openclaw/inbox/issue-openclaw-openclaw-123.md");
+        const auditPath = join(dir, "results/issue-implementation-intake/openclaw-openclaw/123.md");
+        if (scenario === "search-error") {
+          assert.notEqual(result.status, 0);
+          assert.match(result.stderr, /failed to search open PRs mentioning issue/);
+          assert.equal(existsSync(jobPath), false);
+          assert.equal(existsSync(auditPath), false);
+        } else {
+          assert.equal(result.status, 0, result.stderr);
+          const output = JSON.parse(result.stdout);
+          assert.equal(output.should_repair, scenario === "eligible");
+          assert.equal(existsSync(jobPath), scenario === "eligible");
+          assert.equal(existsSync(auditPath), true);
+          if (scenario === "duplicate") {
+            assert.equal(output.blocker_class, "hard");
+            assert.match(output.blockers, /open PR already mentions this issue/);
+          } else {
+            const job = readFileSync(jobPath, "utf8");
+            assert.match(job, /repo: openclaw\/openclaw/);
+            assert.match(job, /candidates:\n  - #123\n/);
+            assert.match(job, /allow_merge: false/);
+            assert.match(job, /allow_post_merge_close: false/);
+          }
+        }
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    }
+  });
 }
 
 test("strict reproducible bug reports are eligible for implementation intake", () => {
