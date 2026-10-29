@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, realpathSync, rmSync } from "node:fs";
 import path from "node:path";
 
 const GENERATED_PATHS = [
@@ -32,6 +32,22 @@ if (!GENERATED_PATHS.some((relativePath) => existsSync(path.join(stateRoot, rela
   );
 }
 
+const resolvedStateRoot = realpathSync(stateRoot);
+const sources = GENERATED_PATHS.map((relativePath) =>
+  resolveExistingPath(path.join(stateRoot, relativePath)),
+);
+for (const relativePath of GENERATED_PATHS) {
+  const destination = resolveExistingPath(path.join(worktreeRoot, relativePath));
+  if (
+    containsPath(destination, resolvedStateRoot) ||
+    sources.some((source) => containsPath(source, destination) || containsPath(destination, source))
+  ) {
+    throw new Error(
+      `Hydration paths overlap: ${path.join(worktreeRoot, relativePath)} and ${stateRoot}`,
+    );
+  }
+}
+
 for (const relativePath of GENERATED_PATHS) {
   const source = path.join(stateRoot, relativePath);
   const destination = path.join(worktreeRoot, relativePath);
@@ -42,6 +58,19 @@ for (const relativePath of GENERATED_PATHS) {
 }
 
 console.log(JSON.stringify({ hydrated: GENERATED_PATHS, source: stateRoot, target: worktreeRoot }));
+
+function resolveExistingPath(filePath: string): string {
+  if (existsSync(filePath)) return realpathSync(filePath);
+  return path.join(resolveExistingPath(path.dirname(filePath)), path.basename(filePath));
+}
+
+function containsPath(parent: string, child: string): boolean {
+  const relative = path.relative(parent, child);
+  return (
+    relative === "" ||
+    (relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative))
+  );
+}
 
 function parseArgs(argv: string[]): Args {
   const parsed: Args = {};
