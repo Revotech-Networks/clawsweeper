@@ -1,5 +1,17 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import {
+  cpSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { spawnSync } from "node:child_process";
+import os from "node:os";
+import path from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 
 test("gitcrawl readers prefer portable gitcrawl-store before legacy local DB", () => {
@@ -40,7 +52,7 @@ test("gitcrawl cluster import drip-feeds mostly open clusters by default", () =>
   assert.match(source, /closedPercent >= skipClosedPercent/);
   assert.match(
     source,
-    /\(\(closed_count \* 100\) \/ member_count\) < \$\{sqlNumber\(skipClosedPercent\)\}/,
+    /\(\(closed_count \* 100\) \/ eligible_member_count\) < \$\{sqlNumber\(skipClosedPercent\)\}/,
   );
   assert.match(limitsDocs, /75% closed members are skipped/);
   assert.match(repairDocs, /75%\+ closed clusters by default/);
@@ -72,3 +84,191 @@ test("gitcrawl cluster import is not blocked by the scheduled intake gate", () =
   assert.doesNotMatch(lowSignalSource, /CLAWSWEEPER_FEATURE_CLUSTER_REPAIR_ENABLED/);
   assert.doesNotMatch(dispatchJobs, /CLAWSWEEPER_FEATURE_CLUSTER_REPAIR_ENABLED/);
 });
+
+for (const family of ["legacy", "portable"] as const) {
+  test(`${family} cluster import preserves repository identity`, async (t) => {
+    const tmp = mkdtempSync(path.join(os.tmpdir(), "clawsweeper-cluster-repo-"));
+    t.after(() => rmSync(tmp, { recursive: true, force: true }));
+    const runtime = path.join(tmp, "runtime");
+    const bin = path.join(tmp, "bin");
+    mkdirSync(runtime);
+    mkdirSync(bin);
+    cpSync("dist", path.join(runtime, "dist"), { recursive: true });
+    cpSync("config", path.join(runtime, "config"), { recursive: true });
+    // Execute the production SQL with SQLite without requiring a system CLI package.
+    writeFileSync(
+      path.join(bin, "sqlite3"),
+      `#!${process.execPath}
+const { DatabaseSync } = require("node:sqlite");
+const args = process.argv.slice(2);
+const json = args[0] === "-json";
+if (json) args.shift();
+if (args.length !== 2) throw new Error("unexpected SQLite invocation");
+const db = new DatabaseSync(args[0], { readOnly: true });
+try {
+  const rows = db.prepare(args[1]).all();
+  console.log(json ? JSON.stringify(rows) : rows.map(row => Object.values(row).join("|")).join("\\n"));
+} finally {
+  db.close();
+}
+`,
+      { mode: 0o755 },
+    );
+
+    const cases = [
+      { name: "foreign explicit cluster", foreignCluster: true, automatic: false, jobs: 0 },
+      { name: "foreign automatic cluster", foreignCluster: true, automatic: true, jobs: 0 },
+      { name: "same repository explicit cluster", automatic: false, jobs: 1 },
+      { name: "same repository automatic cluster", automatic: true, jobs: 1 },
+      {
+        name: "foreign member excluded explicitly",
+        foreignMember: true,
+        automatic: false,
+        jobs: 1,
+      },
+      {
+        name: "foreign member excluded automatically",
+        foreignMember: true,
+        automatic: true,
+        jobs: 1,
+      },
+      {
+        name: "foreign member cannot satisfy minimum size",
+        foreignMember: true,
+        automatic: true,
+        minSize: 3,
+        jobs: 0,
+      },
+      {
+        name: "foreign representative excluded explicitly",
+        representative: "foreign",
+        automatic: false,
+        jobs: 1,
+      },
+      {
+        name: "foreign representative excluded automatically",
+        representative: "foreign",
+        automatic: true,
+        jobs: 1,
+      },
+      {
+        name: "missing representative remains supported explicitly",
+        representative: "missing",
+        automatic: false,
+        jobs: 1,
+      },
+      {
+        name: "missing representative remains supported automatically",
+        representative: "missing",
+        automatic: true,
+        jobs: 1,
+      },
+    ];
+    for (const scenario of cases) {
+      await t.test(scenario.name, () => {
+        const dir = mkdtempSync(path.join(tmp, "case-"));
+        const dbPath = path.join(dir, "store.db");
+        const db = new DatabaseSync(dbPath);
+        try {
+          // Required query columns from Gitcrawl's legacy and portable schemas.
+          db.exec(`
+            create table repositories (id integer primary key, owner text, name text);
+            create table threads (
+              id integer primary key, repo_id integer, number integer, kind text, state text,
+              title text, body text, body_excerpt text, labels_json text, updated_at text
+            );
+            insert into repositories values (1, 'fixture', 'alpha'), (2, 'fixture', 'beta');
+          `);
+          const insertThread = db.prepare(
+            "insert into threads values (?, ?, ?, 'issue', 'open', 'Fix import selection', 'Bug report', 'Bug report', '[]', '2026-10-29T00:00:00Z')",
+          );
+          for (const [id, repoId, number] of [
+            [101, 1, 11],
+            [102, 1, 12],
+            [201, 2, 11],
+            [202, 2, 12],
+            [203, 2, 99],
+          ]) {
+            insertThread.run(id, repoId, number);
+          }
+          const repoId = scenario.foreignCluster ? 2 : 1;
+          const members = scenario.foreignCluster ? [201, 202] : [101, 102];
+          if (scenario.foreignMember) members.push(203);
+          const representative =
+            scenario.representative === "missing"
+              ? null
+              : scenario.representative === "foreign"
+                ? 203
+                : members[0];
+          if (family === "legacy") {
+            db.exec(`
+              create table clusters (id integer primary key, repo_id integer,
+                representative_thread_id integer, member_count integer, created_at text,
+                closed_at_local text, close_reason_local text);
+              create table cluster_members (cluster_id integer, thread_id integer);
+            `);
+            db.prepare("insert into clusters values (9, ?, ?, ?, '2026-10-29', null, null)").run(
+              repoId,
+              representative,
+              members.length,
+            );
+            for (const member of members)
+              db.prepare("insert into cluster_members values (9, ?)").run(member);
+          } else {
+            db.exec(`
+              create table cluster_groups (id integer primary key, repo_id integer,
+                representative_thread_id integer, created_at text, closed_at text, status text);
+              create table cluster_memberships (cluster_id integer, thread_id integer, state text);
+            `);
+            db.prepare(
+              "insert into cluster_groups values (9, ?, ?, '2026-10-29', null, 'active')",
+            ).run(repoId, representative);
+            for (const member of members)
+              db.prepare("insert into cluster_memberships values (9, ?, 'active')").run(member);
+          }
+        } finally {
+          db.close();
+        }
+
+        const out = path.join(dir, "jobs");
+        mkdirSync(out);
+        const result = spawnSync(
+          process.execPath,
+          [
+            path.join(runtime, "dist/repair/import-gitcrawl-clusters.js"),
+            ...(scenario.automatic ? ["--from-gitcrawl", "--allow-empty"] : ["9"]),
+            "--repo",
+            "fixture/alpha",
+            "--db",
+            dbPath,
+            "--out",
+            out,
+            "--mode",
+            "autonomous",
+            "--min-size",
+            String(scenario.minSize ?? 2),
+          ],
+          {
+            cwd: runtime,
+            env: { PATH: bin, HOME: dir, GITHUB_REPOSITORY: "fixture/runtime" },
+            encoding: "utf8",
+            timeout: 20_000,
+          },
+        );
+        assert.equal(result.status, 0, result.stderr || result.error?.message);
+        const files = readdirSync(out, { recursive: true }).filter((file) =>
+          String(file).endsWith(".md"),
+        );
+        assert.equal(files.length, scenario.jobs, result.stdout);
+        if (scenario.jobs === 0) return;
+        const job = readFileSync(path.join(out, String(files[0])), "utf8");
+        assert.match(job, /^repo: fixture\/alpha$/m);
+        assert.match(job, /^candidates:\n  - "#11"\n  - "#12"\n/m);
+        assert.match(job, /^cluster_refs:\n  - "#11"\n  - "#12"\n/m);
+        assert.doesNotMatch(job, /#99\b/);
+        if (scenario.representative) assert.match(job, /^canonical:\n  \[\]\n/m);
+        else assert.match(job, /^canonical:\n  - "#11"\n/m);
+      });
+    }
+  });
+}
