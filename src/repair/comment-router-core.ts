@@ -1836,18 +1836,41 @@ export function staleClosedItemCommandReason({
 
 export const staleAutomergeActivationReason = staleClosedItemCommandReason;
 
-export function repairLoopStopPauseReason({ command, entries = [] }: LooseRecord): string | null {
-  const stopAt = latestRepairLoopControlTime(entries, command, ["stop"]);
-  if (!stopAt) return null;
-
-  let resumeAt = latestRepairLoopControlTime(entries, command, ["autofix", "automerge"]);
+export function repairLoopControlBlockReason({
+  command,
+  entries = [],
+}: LooseRecord): string | null {
   const commandIntent = String(command?.intent ?? "");
-  if (["autofix", "automerge"].includes(commandIntent) && !command?.trusted_bot) {
-    resumeAt = Math.max(resumeAt, repairLoopControlTime(command));
+  const stopAt = latestRepairLoopControlTime(entries, command, ["stop"]);
+  if (stopAt) {
+    let resumeAt = latestRepairLoopControlTime(entries, command, ["autofix", "automerge"]);
+    if (["autofix", "automerge"].includes(commandIntent) && !command?.trusted_bot) {
+      resumeAt = Math.max(resumeAt, repairLoopControlTime(command));
+    }
+    if (stopAt > resumeAt) {
+      return "ClawSweeper automation was paused by a later /clawsweeper stop command";
+    }
   }
 
-  if (stopAt <= resumeAt) return null;
-  return "ClawSweeper automation was paused by a later /clawsweeper stop command";
+  if (command?.trusted_bot || !["autofix", "automerge"].includes(commandIntent)) return null;
+  const commandAt = repairLoopControlTime(command);
+  if (!commandAt || !Array.isArray(entries)) return null;
+  const oppositeIntent = commandIntent === "autofix" ? "automerge" : "autofix";
+  const commentId = Number(command?.comment_id ?? command?.id ?? 0);
+  for (const entry of entries) {
+    if (!entry || typeof entry !== "object" || entry.trusted_bot) continue;
+    if (entry.repo !== command?.repo) continue;
+    if (Number(entry.issue_number) !== Number(command?.issue_number)) continue;
+    if (entry.intent !== oppositeIntent) continue;
+    const entryAt = repairLoopControlTime(entry);
+    if (
+      entryAt > commandAt ||
+      (entryAt === commandAt && Number(entry.comment_id ?? entry.id ?? 0) > commentId)
+    ) {
+      return `ClawSweeper ${commandIntent} request was superseded by a later /clawsweeper ${oppositeIntent} command`;
+    }
+  }
+  return null;
 }
 
 function latestRepairLoopControlTime(entries: JsonValue, command: LooseRecord, intents: string[]) {

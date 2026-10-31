@@ -58,7 +58,7 @@ import {
   parseTrustedAutomation,
   repairableCheckBlockers,
   repairLoopPauseLabels,
-  repairLoopStopPauseReason,
+  repairLoopControlBlockReason,
   reviewedHeadShaBlockReason,
   renderAutomergeJob,
   renderIssueImplementationJob,
@@ -524,7 +524,7 @@ function classifyCommand(command: LooseRecord): JsonValue {
       }
       return automergeBlocked(next, `${mode} requires a pull request`);
     }
-    const stoppedReason = repairLoopStoppedReason(next);
+    const stoppedReason = repairLoopBlockedReason(next);
     if (stoppedReason) return { ...next, status: "skipped", reason: stoppedReason };
     const pauseLabels = pauseLabelsOn(target);
     const failedChecksRepairReason = automergeFailedChecksRepairReason(target.checks);
@@ -694,7 +694,7 @@ function classifyCommand(command: LooseRecord): JsonValue {
     return repairBlocked(next, "repair commands require a pull request");
   }
   if (command.trusted_bot) {
-    const stoppedReason = repairLoopStoppedReason(next);
+    const stoppedReason = repairLoopBlockedReason(next);
     if (stoppedReason) return { ...next, status: "skipped", reason: stoppedReason };
   }
   if (!canRepairPullTarget(target)) {
@@ -817,7 +817,7 @@ function classifyAutomergePass(
     return { ...command, status: "skipped", reason: "PR is not open" };
   if (!pull)
     return { ...command, status: "skipped", reason: "ClawSweeper pass marker is not on a PR" };
-  const stoppedReason = repairLoopStoppedReason(command);
+  const stoppedReason = repairLoopBlockedReason(command);
   if (stoppedReason) return { ...command, status: "skipped", reason: stoppedReason };
   if (!hasRepairLoopLabel(command.target))
     return {
@@ -1194,8 +1194,8 @@ function latestAutomergeMaintainerAttribution(command: LooseRecord) {
   };
 }
 
-function repairLoopStoppedReason(command: LooseRecord) {
-  return repairLoopStopPauseReason({
+function repairLoopBlockedReason(command: LooseRecord) {
+  return repairLoopControlBlockReason({
     command,
     entries: repairLoopControlEntries(),
   });
@@ -2276,7 +2276,7 @@ function closeIssueOrPullRequest(repo: string, number: number, kind: string) {
 }
 
 function executeAutomerge(command: LooseRecord) {
-  const stoppedReason = repairLoopStoppedReason(command);
+  const stoppedReason = repairLoopBlockedReason(command);
   if (stoppedReason) {
     return { action: "merge", status: "blocked", reason: stoppedReason, merge_method: "squash" };
   }
