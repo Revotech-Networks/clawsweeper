@@ -1,12 +1,13 @@
 # ClawSweeper audit and hardening report
 
-Status: in progress. Source delivery: **6 P1 repairs and 4 Ponytail repairs are
+Status: in progress. Source delivery: **7 P1 repairs and 4 Ponytail repairs are
 MERGED + TARGET-VERIFIED**. Accepted completed lifecycles recorded by this report
-are **3 P1 and 3 Ponytail**. The accepted P1 repairs remain:
+are **4 P1 and 3 Ponytail**. The accepted P1 repairs remain:
 
 - https://github.com/Revotech-Networks/clawsweeper/pull/18.
 - https://github.com/Revotech-Networks/clawsweeper/pull/16.
 - https://github.com/Revotech-Networks/clawsweeper/pull/23.
+- https://github.com/Revotech-Networks/clawsweeper/pull/33.
 
 The separate Ponytail simplifications are:
 
@@ -27,11 +28,11 @@ those counts. Coverage remains partial; the sprint is not exhausted.
 - Tracking issue: https://github.com/Revotech-Networks/clawsweeper/issues/1.
 - Target: `main`.
 - Starting target: `213617f23092562b3c2b7b879bd584d05aa0567b`.
-- Last fetched target: `98d1f545b2a97b34acb3c0107504867694355702`.
+- Last fetched target: `94d125d2ff49d1624aba410a9638cc63b9725e7b`.
 - Start date: 2026-10-29 UTC.
 - Accountable repository thread: `mcp:79b391bb-735c-4f22-b5c4-de62b5253e89`.
 - Portfolio coordinator: `d4ba2482-746c-4bf0-a13d-667f3134c71f`.
-- Coordinator branch: `audit/report-unused-core-scheduler-20261029`.
+- Coordinator branch: `audit/report-ordered-controls-20261031`.
 
 The audit includes tracked first-party source, tests, manifests, configuration,
 workflows, prompts, schemas, and durable documentation at the starting revision.
@@ -550,7 +551,7 @@ browser, accessibility, or load-test result.
 Lower-priority observations remain task notes without issues or repair pushes.
 Other caller and authority leads remain unadmitted pending offline proof and
 root classification. An independent offline CLI check substantiated one additional command-routing
-P1. It is privately tracked pending a scoped repair. A subsequent merge attempt
+P1. It was privately tracked; its source delivery is recorded below. A subsequent merge attempt
 was not observed because its synthetic follow-up stopped before merge
 validation. That follow-up is not repeated, and no completed lifecycle is added.
 The previously recorded maintainer-policy discrepancy and private disclosure
@@ -652,18 +653,25 @@ An unapplied two-line proposal selects the existing current-repository
 App token would keep Actions read. GitHub documents `workflow_dispatch` as an
 exception that can create workflow runs from `GITHUB_TOKEN` in its
 [workflow-trigger guidance](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow#triggering-a-workflow-from-a-workflow).
-The proposal still expands token authority. The existing sprint grant excludes
-permission changes, so implementation awaits a separate scoped human decision
-owned by the portfolio coordinator. No product source, permission, credential,
-App installation or setting changed; no repair PR or live dispatch exists for
-this finding. The issue remains open and incomplete, with zero count credit.
+The proposal expands token authority. Chris has now separately approved exactly
+those two production lines and proportional regression tests through the Assured
+source/PR endpoint. The patch and one regression in the existing workflow test
+file are prepared in an isolated branch. The regression fails before the repair;
+after it, all three selected workflow guards and all 16 existing intake tests
+pass. The approved owner-scoped App token remains Actions read. No permission
+change has landed, and no repair PR or live dispatch exists yet. Required full
+Assured pre-push proof awaits its distinct one-use finite resource disposition;
+no larger local invocation was started. The issue remains open and incomplete,
+with zero count credit. No App installation, settings, secrets, feature
+enablement or spend is authorized by that approval.
 
-The separately tracked private command-routing repair is frozen and unpublished
-pending its own source/test visibility decision. The coordinator's read-only
-prepublication consultation completed without a blocking finding; it provides
-no formal PR review or hosted CI credit. These two decisions are separate, and
-neither reuses an earlier candidate's approval. Private reproduction, impact and
-advisory details remain private.
+Chris separately approved ordinary public source/test visibility for the exact
+frozen command-routing candidate and its complete draft. That source has now
+landed through https://github.com/Revotech-Networks/clawsweeper/pull/33, as
+recorded below. Its earlier read-only prepublication consultation provides no
+formal PR review or hosted CI credit. The visibility and permission decisions
+remain separate; neither borrows another candidate's approval. Private advisory,
+reproduction and impact details remain private.
 
 The complete paginated open-issue and open-PR readback at 21:34 UTC found the
 tracker, https://github.com/Revotech-Networks/clawsweeper/issues/14,
@@ -738,8 +746,68 @@ without executing the provider/model smoke or asset generator. The root also
 read the repair limits module, all 716 lines of the decision schema through
 composed ranges, the close-coverage schema, four compiler/format configuration
 files, and the merge/low-signal instructions. These reads and caller checks
-establish no new runtime defect or provider result. The tracked Crabbox skill
-was read as audit data but its output was truncated; its coverage remains
-partial and no Crabbox procedure was applied. Unlisted actions, tests and
-durable documentation still require assessment, and all existing live-proof
-and authority gaps remain.
+establish no new runtime defect or provider result. The first tracked Crabbox guide read was truncated. The root subsequently
+completed all 711 lines at the identical source pin and read all 52 lines of
+`.crabbox.yaml`, with focused package-script/hydration caller checks. Its
+OpenClaw-specific examples reference a helper and Testbox workflow absent from
+this checkout; the actual local configuration uses the existing AWS hydration
+path. This remains a below-cutoff documentation portability note, with no
+qualified product failure or behavior-preserving simplification established.
+The guide was audit data; no Crabbox command or procedure was applied. Unlisted
+actions, tests and durable documentation still require assessment, and all
+existing live-proof gaps remain.
+
+## Ordered repair-control source delivery
+
+https://github.com/Revotech-Networks/clawsweeper/pull/33 delivers the previously
+admitted private P1 repair. The owner explicitly approved public source/tests
+for the exact frozen candidate and complete draft. Both were published
+unchanged. The fix reuses existing authorized control entries so mode and pause
+policy are applied consistently before no-op classification. Repository/PR
+scoping, trusted automation handling and existing merge-readiness checks remain.
+
+The approved head is `f360688ab13c82275508ded0f037ab1d1f82d3d2`, with candidate
+tree `3db93270e9f266f2a503c14da04a8e22be665d74`. Fresh ordinary readiness and
+owned repository admission passed before publication. Fresh repair compilation
+and all 95 core policy tests passed, each within 20 seconds, with cumulative
+child peak RSS of 144,692 KiB. The prior same-head offline candidate batch proof
+retains its original date and disposition; it was not replayed or relabelled
+fresh. Consumed qualification attempts and the unproved synthetic merge
+follow-up remain unchanged.
+
+Hosted Code Review completed at 00:53:23 UTC and Security Review at 00:53:44 UTC
+on 2026-10-31, with no posted findings. Complete conversation, review submission
+and inline-thread readbacks were reconciled before and after merge. Genuine
+`pull_request` CI `41152475419` and CodeQL `41152475460` passed on the exact head,
+with their actual pull-request association saved before landing. Full
+`pnpm run check` ran in CI. The optional activity notification was cancelled
+before steps by a higher-priority activity request; it was not called a pass,
+retried or used as an exception.
+
+Normal expected-head squash merge produced
+`94d125d2ff49d1624aba410a9638cc63b9725e7b`. Because main had advanced since the
+frozen candidate's base, the root predicted the integrated three-way tree
+before merge. Fetched target tree `85f1f00d3312e04fb93f6cd5297c8507207a42b1`
+matches that prediction, and all three changed mode-file byte streams match the
+approved candidate. Existing main report and unused-scheduler changes are
+preserved; the whole target tree is not labelled identical to the older
+candidate tree.
+
+Fresh target repair compilation and all 95 core policy tests passed in 0.127
+and 0.117 seconds, respectively, under 20-second bounds. Cumulative child peak
+RSS was 141,920 KiB. The existing private tracking record is closed and remains
+unpublished, with its description preserved. Private advisory, reproduction and
+impact evidence remain private. The source pull request is unwatched. Delivery
+of this canonical report completes the additional P1 lifecycle; it adds no
+Ponytail or report/admin count. Historical withholding and the stopped repair
+remain intact. The permission repair is a separate incomplete lifecycle.
+
+At the 2026-10-31 source-closeout checkpoint, exhaustive paginated open issues
+and pull requests plus individual current states of all 22 then-linked sprint
+pull requests found 21 merged, one open, none closed-unmerged and none
+unavailable. Only https://github.com/Revotech-Networks/clawsweeper/pull/15 remains
+open under its existing STOP, owner and spent recovery budget. Open issues are
+the tracker, https://github.com/Revotech-Networks/clawsweeper/issues/14 and
+https://github.com/Revotech-Networks/clawsweeper/issues/28. The approved permission
+repair remains a separate unpublished candidate awaiting its required proof.
+No audit exhaustion or complete live-integration acceptance is claimed.
