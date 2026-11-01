@@ -28,7 +28,7 @@ Where the fork is used today:
 | Where | What uses it | Details |
 | --- | --- | --- |
 | Worker PC (Windows + WSL 2 Ubuntu, runs as `root`) | `revo-claude-worker/scripts/bootstrap_openclaw_tools.sh` | Clones the fork to `/root/openclaw-tools/clawsweeper` (override with `OPENCLAW_TOOLS_DIR`), adds the `upstream` remote, then runs `pnpm install --frozen-lockfile && pnpm run build`. |
-| Worker PC | `revo-claude-worker/scripts/update_openclaw_forks.sh` | Runs `git merge --ff-only upstream/main` on `main` and pushes to `origin main`. **This fails now** because upstream rewrote its history (see [Sync from upstream](#sync-from-upstream)). |
+| Worker PC | `revo-claude-worker/scripts/update_openclaw_forks.sh` | Runs `git merge --ff-only upstream/main` on `main` and pushes to `origin main`. **This always fails for this repo.** Our `main` has its own commits, and upstream rewrote its history (see [Sync from upstream](#sync-from-upstream)). |
 | GitHub Actions on this fork | `.github/workflows/*.yml` (inherited from upstream) | Only `CI` (`pnpm check`) and `CodeQL` are meaningful here. The fork has no Actions secrets or variables, so live workflows fail. |
 | This repo | `QA-HARDENING-REPORT.md`, issues and PRs | Records for the audit and hardening work. |
 
@@ -52,7 +52,7 @@ What the live Actions failures mean on this fork:
 ## How the fork differs from upstream
 
 The fork branched from upstream commit `fd3f6ff32c` ("Fix fast ack command
-parsing (#233)", 2026-05-31). Our copy of that commit is `a07fc1f942`. Both
+parsing (#233)", 2026-05-31, https://github.com/openclaw/clawsweeper/pull/233). Our copy of that commit is `a07fc1f942`. Both
 have the same tree (`866fb1e3cf`) but different hashes, because upstream later
 rewrote its history. As a result, `git merge-base origin/main upstream/main`
 finds nothing, and `git log upstream/main..origin/main` lists the whole history
@@ -60,10 +60,15 @@ finds nothing, and `git log upstream/main..origin/main` lists the whole history
 point:
 
 ```bash
-git log --oneline a07fc1f942..origin/main            # 23 fork-only commits
-git diff --stat a07fc1f942 origin/main               # 27 files changed
-git log --oneline fd3f6ff32c..upstream/main | wc -l  # upstream commits we don't have (2550 on 2026-11-01)
+git log --oneline a07fc1f942..origin/main            # fork-only commits
+git diff --stat a07fc1f942 origin/main               # files changed by the fork
+git log --oneline fd3f6ff32c..upstream/main | wc -l  # upstream commits we don't have
 ```
+
+Before this guide was added (at `424b4691ff`), the fork had 23 commits of its
+own touching 27 files, and upstream was 2550 commits ahead (2026-11-01). The
+guide's own commit adds `FORK.md` and changes `AGENTS.md`, so the first two
+counts are now higher.
 
 ### 1. Revotech target profiles (config)
 
@@ -86,6 +91,12 @@ checkout of the target and calls Codex:
 pnpm run review -- --target-repo Revotech-Networks/revomind --target-dir ../revomind --batch-size 1 --artifact-dir artifacts/reviews
 ```
 
+`review` is not read-only. Before Codex runs, it posts a public "review
+started" comment on each selected issue or PR that doesn't have a ClawSweeper
+comment yet. The comment goes out through `gh api` (`postReviewStartStatusComment`
+in `src/clawsweeper.ts`). That needs a `gh` login, or `GH_TOKEN`, with write
+access to the target. Run `review` against a Revotech repo only when Chris asks.
+
 To check the profiles without calling Codex or GitHub (requires
 `pnpm run build`):
 
@@ -107,7 +118,7 @@ The `deploy` job in `.github/workflows/dashboard.yml` (Cloudflare dashboard
 Worker) and in `.github/workflows/pages.yml` (docs site) has
 `if: github.repository == 'openclaw/clawsweeper'`. On this fork both jobs show
 as skipped. Without the guard, the fork would try to deploy OpenClaw's
-dashboard and docs with credentials it doesn't have. (PR #17)
+dashboard and docs with credentials it doesn't have. (https://github.com/Revotech-Networks/clawsweeper/pull/17)
 
 ### 3. Correctness and security fixes (code)
 
@@ -115,22 +126,22 @@ Each fix ships with tests and is already active. None needs a flag.
 
 | PR | What changed | Where | How it shows up |
 | --- | --- | --- | --- |
-| #16 | Post-flight merges are bound to the commit that was reviewed. | `src/repair/post-flight.ts` | The action must carry `commit` (40 hex). The merge is blocked with `pull request head does not match reviewed commit` if the head moved, and it always passes `gh pr merge --match-head-commit <commit>`. |
-| #18 | Temporary repository gates restore their previous values. | `src/repair/temporary-repository-gates.ts`, used by `src/repair/requeue-job.ts` and `src/repair/self-heal-failed-runs.ts` | With `--open-execute-window` (or `--live`), `CLAWSWEEPER_ALLOW_EXECUTE` and `CLAWSWEEPER_ALLOW_FIX_PR` are set to `1` for the operation. Afterwards each one is restored to its earlier value, or deleted if it didn't exist. If restoring fails, an `AggregateError` is thrown. |
-| #23 | Low-signal auto-close keeps the security guards. | `src/repair/apply-result.ts` (`validateLowSignalLiveState`), `src/repair/review-results.ts` | A security signal in the PR body, reviews or review comments now blocks a low-signal close with `security-sensitive target requires central security triage`. Other paths already used that message before the fork (for example, `post-flight.ts`). `MUTATING_ACTIONS` now reuses `CLOSE_ACTIONS` and `MERGE_ACTIONS`. |
-| #33 | Repair-mode commands keep their order. | `src/repair/comment-router-core.ts` (`repairLoopControlBlockReason`), `src/repair/comment-router.ts` | When a person posts `/clawsweeper autofix` and later `/clawsweeper automerge` (or the reverse), the later command wins. The earlier one is skipped with `... was superseded by a later /clawsweeper <intent> command`. `/clawsweeper stop` still pauses both. |
-| #7 | Hydration refuses overlapping paths before it deletes anything. | `scripts/hydrate-state.ts` | Throws `Hydration paths overlap: ...` when the state root and the worktree overlap, including through symlinks. |
-| #9 | Each Codex review clears stale output first. | `src/clawsweeper.ts` (`runCodex`) | Deletes the earlier output file before Codex runs, so a failed run can't reuse the last decision. |
-| #11 | The PR search during issue-implementation intake uses GET. | `src/repair/issue-implementation-intake.ts` | `gh api search/issues --method GET ...`. Without it, `-f` makes `gh` send a POST, which the search endpoint rejects. |
+| https://github.com/Revotech-Networks/clawsweeper/pull/16 | Post-flight merges are bound to the commit that was reviewed. | `src/repair/post-flight.ts` | The action must carry `commit` (40 hex). The merge is blocked with `pull request head does not match reviewed commit` if the head moved, and it always passes `gh pr merge --match-head-commit <commit>`. |
+| https://github.com/Revotech-Networks/clawsweeper/pull/18 | Temporary repository gates restore their previous values. | `src/repair/temporary-repository-gates.ts`, used by `src/repair/requeue-job.ts` and `src/repair/self-heal-failed-runs.ts` | With `--open-execute-window` (or `--live`), `CLAWSWEEPER_ALLOW_EXECUTE` and `CLAWSWEEPER_ALLOW_FIX_PR` are set to `1` for the operation. Afterwards each one is restored to its earlier value, or deleted if it didn't exist. If restoring fails, an `AggregateError` is thrown. |
+| https://github.com/Revotech-Networks/clawsweeper/pull/23 | Low-signal auto-close keeps the security guards. | `src/repair/apply-result.ts` (`validateLowSignalLiveState`), `src/repair/review-results.ts` | A security signal in the PR body, reviews or review comments now blocks a low-signal close with `security-sensitive target requires central security triage`. Other paths already used that message before the fork (for example, `post-flight.ts`). `MUTATING_ACTIONS` now reuses `CLOSE_ACTIONS` and `MERGE_ACTIONS`. |
+| https://github.com/Revotech-Networks/clawsweeper/pull/33 | Repair-mode commands keep their order. | `src/repair/comment-router-core.ts` (`repairLoopControlBlockReason`), `src/repair/comment-router.ts` | When a person posts `/clawsweeper autofix` and later `/clawsweeper automerge` (or the reverse), the later command wins. The earlier one is skipped with `... was superseded by a later /clawsweeper <intent> command`. `/clawsweeper stop` still pauses both. |
+| https://github.com/Revotech-Networks/clawsweeper/pull/7 | Hydration refuses overlapping paths before it deletes anything. | `scripts/hydrate-state.ts` | Throws `Hydration paths overlap: ...` when the state root and the worktree overlap, including through symlinks. |
+| https://github.com/Revotech-Networks/clawsweeper/pull/9 | Each Codex review clears stale output first. | `src/clawsweeper.ts` (`runCodex`) | Deletes the earlier output file before Codex runs, so a failed run can't reuse the last decision. |
+| https://github.com/Revotech-Networks/clawsweeper/pull/11 | The PR search during issue-implementation intake uses GET. | `src/repair/issue-implementation-intake.ts` | `gh api search/issues --method GET ...`. Without it, `-f` makes `gh` send a POST, which the search endpoint rejects. |
 
 ### 4. Simplifications and test fixes (no behaviour change)
 
-- **#8** `scripts/check-limits.ts` reuses the canonical limits instead of a copy.
-- **#22** `scripts/build-docs-site.mjs` uses its fixed config directly.
-- **#26** `src/clawsweeper.ts` drops `duplicateCanonicalLinkTexts`, which
+- https://github.com/Revotech-Networks/clawsweeper/pull/8: `scripts/check-limits.ts` reuses the canonical limits instead of a copy.
+- https://github.com/Revotech-Networks/clawsweeper/pull/22: `scripts/build-docs-site.mjs` uses its fixed config directly.
+- https://github.com/Revotech-Networks/clawsweeper/pull/26: `src/clawsweeper.ts` drops `duplicateCanonicalLinkTexts`, which
   duplicated `duplicateCanonicalTexts`.
-- **#31** `src/limits.ts` loses its unused core worker-scheduler block.
-- **#3** `test/clawsweeper.test.ts` and `test/repair/target-fanout.test.ts` no
+- https://github.com/Revotech-Networks/clawsweeper/pull/31: `src/limits.ts` loses its unused core worker-scheduler block.
+- https://github.com/Revotech-Networks/clawsweeper/pull/3: `test/clawsweeper.test.ts` and `test/repair/target-fanout.test.ts` no
   longer depend on today's date or the live target inventory. Without this,
   baseline tests fail in the fork.
 
@@ -230,8 +241,8 @@ so git still can't see a shared commit and picks the older base `e3ebdc80ba`,
 which gives 23 conflicts.
 
 After the first merge lands, `upstream/main` is an ancestor of our `main`.
-From then on, a plain `git merge upstream/main` works and the steps above are no
-longer needed.
+From then on, a plain `git merge upstream/main` (not `--ff-only`) on a sync
+branch works, and the graft isn't needed again.
 
 What to expect (a preview on 2026-11-01 showed 19 conflicted files):
 
@@ -258,8 +269,10 @@ Don't change upstream-owned docs (`README.md`, `CONTRIBUTING.md`, `docs/`,
 of doc conflicts.
 
 `revo-claude-worker/scripts/update_openclaw_forks.sh` runs
-`merge --ff-only upstream/main`. It will keep failing for this repo until the
-first merge above lands on `main`.
+`merge --ff-only upstream/main`. That can't work for this repo, even after the
+first merge lands: our `main` has commits upstream lacks, so a fast-forward is
+never possible. Sync this fork with the PR flow above. Changing the updater is
+a `revo-claude-worker` change, not a change in this repo.
 
 ## Upstream docs that still apply
 
