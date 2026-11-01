@@ -88,3 +88,8 @@ gh api graphql -f query='query { repository(owner:"openclaw", name:"openclaw") {
 For throughput/default tuning, inspect and update both `src/clawsweeper.ts` and
 `.github/workflows/sweep.yml`; continuation paths can otherwise keep stale
 defaults.
+
+<!-- fork:start -->
+**Revotech fork.** This repo is `Revotech-Networks/clawsweeper`, a fork of `openclaw/clawsweeper`. It carries our hardening fixes and the Revotech target profiles, and `revo-claude-worker` clones it on the worker PC as its model for queue and lane design.
+Read `FORK.md` before working here. It covers what differs from upstream, how to build and verify, the upstream sync procedure, and which upstream docs still apply.
+<!-- fork:end -->
