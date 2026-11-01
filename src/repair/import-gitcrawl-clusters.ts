@@ -274,18 +274,21 @@ function selectClusterIds() {
     return sqliteJson(`
       select
         cg.id,
-        count(*) as member_count,
+        count(*) as eligible_member_count,
         sum(case when t.state = 'open' then 1 else 0 end) as open_count,
         sum(case when t.state != 'open' then 1 else 0 end) as closed_count
       from cluster_groups cg
+      join repositories r on r.id = cg.repo_id
       join cluster_memberships cm on cm.cluster_id = cg.id and cm.state = 'active'
-      join threads t on t.id = cm.thread_id
-      where cg.status = 'active'
+      join threads t on t.id = cm.thread_id and t.repo_id = cg.repo_id
+      where r.owner = ${sqlString(repo.split("/")[0])}
+        and r.name = ${sqlString(repo.split("/")[1])}
+        and cg.status = 'active'
       group by cg.id
-      having member_count >= ${sqlNumber(minSize)}
+      having eligible_member_count >= ${sqlNumber(minSize)}
         and open_count >= ${sqlNumber(minOpenMembers)}
-        and ((closed_count * 100) / member_count) < ${sqlNumber(skipClosedPercent)}
-      order by member_count desc, cg.id asc
+        and ((closed_count * 100) / eligible_member_count) < ${sqlNumber(skipClosedPercent)}
+      order by eligible_member_count desc, cg.id asc
     `)
       .map((row: JsonValue) => Number(row.id))
       .filter(Boolean);
@@ -293,18 +296,21 @@ function selectClusterIds() {
   return sqliteJson(`
     select
       c.id,
-      count(*) as member_count,
+      count(*) as eligible_member_count,
       sum(case when t.state = 'open' then 1 else 0 end) as open_count,
       sum(case when t.state != 'open' then 1 else 0 end) as closed_count
     from clusters c
+    join repositories r on r.id = c.repo_id
     join cluster_members cm on cm.cluster_id = c.id
-    join threads t on t.id = cm.thread_id
-    where c.closed_at_local is null
+    join threads t on t.id = cm.thread_id and t.repo_id = c.repo_id
+    where r.owner = ${sqlString(repo.split("/")[0])}
+      and r.name = ${sqlString(repo.split("/")[1])}
+      and c.closed_at_local is null
     group by c.id
-    having member_count >= ${sqlNumber(minSize)}
+    having eligible_member_count >= ${sqlNumber(minSize)}
       and open_count >= ${sqlNumber(minOpenMembers)}
-      and ((closed_count * 100) / member_count) < ${sqlNumber(skipClosedPercent)}
-    order by member_count desc, c.id asc
+      and ((closed_count * 100) / eligible_member_count) < ${sqlNumber(skipClosedPercent)}
+    order by eligible_member_count desc, c.id asc
   `)
     .map((row: JsonValue) => Number(row.id))
     .filter(Boolean);
@@ -320,12 +326,6 @@ function memberSqlForClusterIds(clusterIds: JsonValue[]) {
     return `
       select
         cg.id as cluster_id,
-        (
-          select count(*)
-          from cluster_memberships cm_count
-          where cm_count.cluster_id = cg.id
-            and cm_count.state = 'active'
-        ) as member_count,
         cg.created_at as cluster_created_at,
         cg.closed_at as closed_at_local,
         cg.status as close_reason_local,
@@ -341,17 +341,19 @@ function memberSqlForClusterIds(clusterIds: JsonValue[]) {
         t.labels_json,
         t.updated_at
       from cluster_groups cg
+      join repositories r on r.id = cg.repo_id
       join cluster_memberships cm on cm.cluster_id = cg.id and cm.state = 'active'
-      join threads t on t.id = cm.thread_id
-      left join threads rt on rt.id = cg.representative_thread_id
-      where cg.id in (${idList})
+      join threads t on t.id = cm.thread_id and t.repo_id = cg.repo_id
+      left join threads rt on rt.id = cg.representative_thread_id and rt.repo_id = cg.repo_id
+      where r.owner = ${sqlString(repo.split("/")[0])}
+        and r.name = ${sqlString(repo.split("/")[1])}
+        and cg.id in (${idList})
       order by cg.id, t.number;
     `;
   }
   return `
     select
       c.id as cluster_id,
-      c.member_count,
       c.created_at as cluster_created_at,
       c.closed_at_local,
       c.close_reason_local,
@@ -367,10 +369,13 @@ function memberSqlForClusterIds(clusterIds: JsonValue[]) {
       t.labels_json,
       t.updated_at
     from clusters c
+    join repositories r on r.id = c.repo_id
     join cluster_members cm on cm.cluster_id = c.id
-    join threads t on t.id = cm.thread_id
-    left join threads rt on rt.id = c.representative_thread_id
-    where c.id in (${idList})
+    join threads t on t.id = cm.thread_id and t.repo_id = c.repo_id
+    left join threads rt on rt.id = c.representative_thread_id and rt.repo_id = c.repo_id
+    where r.owner = ${sqlString(repo.split("/")[0])}
+      and r.name = ${sqlString(repo.split("/")[1])}
+      and c.id in (${idList})
     order by c.id, t.number;
   `;
 }
@@ -455,6 +460,10 @@ function sqlNumber(value: JsonValue) {
     throw new Error(`unsafe cluster id: ${value}`);
   }
   return String(value);
+}
+
+function sqlString(value: JsonValue) {
+  return `'${String(value).replaceAll("'", "''")}'`;
 }
 
 function safeJson(value: JsonValue) {
